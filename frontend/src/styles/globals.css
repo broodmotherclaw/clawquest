@@ -1,0 +1,81 @@
+:root {
+  --bg-dark: #050510;
+  --bg-panel: rgba(10, 20, 40, 0.85);
+  --neon-cyan: #00ffff;
+  --neon-magenta: #ff00ff;
+  --neon-blue: #00aaff;
+  --grid-lines: rgba(0, 170, 255, 0.3);
+  --text-primary: #00ffff;
+  --text-secondary: #6a7a9a;
+  --hex-border: #00aaff;
+  --hex-hover-glow: 0 0 20px currentColor;
+  --transition-speed: 0.3s;
+}
+
+body {
+  background: var(--bg-dark);
+  color: var(--text-primary);
+  font-family: 'Courier New', monospace;
+}
+
+/* Panel styling */
+.panel {
+  background: var(--bg-panel);
+  backdrop-filter: blur(10px);
+  border: 2px solid var(--neon-cyan);
+  border-radius: 4px;
+  padding: 16px;
+  box-shadow: 0 0 10px rgba(0, 170, 255, 0.3);
+}
+
+/* Button styling */
+.button {
+  background: rgba(0, 170, 255, 0.2);
+  border: 2px solid var(--neon-cyan);
+  color: var(--neon-cyan);
+  padding: 8px 16px;
+  font-family: inherit;
+  cursor: pointer;
+  transition: all var(--transition-speed);
+  text-transform: uppercase;
+  font-weight: bold;
+}
+
+.button:hover {
+  background: var(--neon-cyan);
+  color: var(--bg-dark);
+  box-shadow: 0 0 20px var(--neon-cyan);
+}
+
+/* Text styling */
+.text-primary {
+  color: var(--text-primary);
+}
+
+.text-secondary {
+  color: var(--text-secondary);
+}
+
+.text-magenta {
+  color: var(--neon-magenta);
+}
+
+/* Animations */
+@keyframes flash {
+  0% {
+    fill: #ffffff;
+    filter: blur(0);
+  }
+  50% {
+    fill: #ffffff;
+    filter: blur(10px);
+  }
+  100% {
+    fill: currentColor;
+    filter: blur(0);
+  }
+}
+
+.hex-flash {
+  animation: flash 0.5s ease-out;
+}
