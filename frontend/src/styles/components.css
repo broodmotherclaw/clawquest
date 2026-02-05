@@ -1,0 +1,330 @@
+/* Gang Filter Styles */
+.gang-filter {
+  background: rgba(5, 5, 16, 0.8);
+  border: 1px solid rgba(0, 255, 255, 0.3);
+  border-radius: 8px;
+  padding: 16px;
+  backdrop-filter: blur(10px);
+}
+
+.gang-filter h3 {
+  color: #00ffff;
+  font-size: 18px;
+  margin: 0 0 16px 0;
+  text-shadow: 0 0 10px rgba(0, 255, 255, 0.5);
+}
+
+.gang-filter button {
+  width: 100%;
+  padding: 12px 16px;
+  margin-bottom: 8px;
+  background: rgba(0, 0, 0, 0.3);
+  border: 1px solid rgba(0, 255, 255, 0.2);
+  border-radius: 6px;
+  color: #00ffff;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.gang-filter button:hover {
+  background: rgba(0, 255, 255, 0.1);
+  border-color: rgba(0, 255, 255, 0.5);
+  box-shadow: 0 0 15px rgba(0, 255, 255, 0.3);
+  transform: translateX(5px);
+}
+
+.gang-filter button.active {
+  background: rgba(0, 255, 255, 0.2);
+  border-color: #00ffff;
+  box-shadow: 0 0 20px rgba(0, 255, 255, 0.4);
+}
+
+.gang-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.gang-logo {
+  width: 32px;
+  height: 32px;
+  flex-shrink: 0;
+}
+
+.gang-info {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.gang-name {
+  color: #00ffff;
+  font-weight: bold;
+  font-size: 14px;
+}
+
+.gang-members {
+  color: #00ff99;
+  font-size: 12px;
+}
+
+/* Gang Detail Overlay */
+.gang-detail-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.8);
+  display: flex;
+  alignItems: center;
+  justifyContent: center;
+  z-index: 1000;
+  backdrop-filter: blur(5px);
+}
+
+.gang-detail-card {
+  background: rgba(5, 5, 16, 0.95);
+  border: 2px solid #00ffff;
+  border-radius: 16px;
+  padding: 24px;
+  max-width: 500px;
+  width: 90%;
+  box-shadow: 0 0 50px rgba(0, 255, 255, 0.3),
+              inset 0 0 30px rgba(0, 255, 255, 0.1);
+  animation: modal-enter 0.3s ease;
+}
+
+@keyframes modal-enter {
+  from {
+    opacity: 0;
+    transform: scale(0.9) translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
+.gang-detail-card .close-btn {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  background: transparent;
+  border: none;
+  color: #00ffff;
+  font-size: 28px;
+  cursor: pointer;
+  padding: 0;
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  transition: all 0.3s ease;
+}
+
+.gang-detail-card .close-btn:hover {
+  background: rgba(0, 255, 255, 0.2);
+  box-shadow: 0 0 15px rgba(0, 255, 255, 0.4);
+}
+
+.gang-header {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin-bottom: 20px;
+  padding-bottom: 20px;
+  border-bottom: 1px solid rgba(0, 255, 255, 0.2);
+}
+
+.gang-header .gang-logo {
+  width: 64px;
+  height: 64px;
+  border: 2px solid #00ffff;
+  border-radius: 12px;
+  box-shadow: 0 0 20px rgba(0, 255, 255, 0.3);
+}
+
+.gang-header .gang-info h2 {
+  color: #00ffff;
+  font-size: 24px;
+  margin: 0 0 8px 0;
+  text-shadow: 0 0 10px rgba(0, 255, 255, 0.5);
+}
+
+.gang-header .gang-info p {
+  color: #00ff99;
+  font-size: 14px;
+  margin: 0;
+}
+
+.gang-stats {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 16px;
+  margin-bottom: 24px;
+}
+
+.stat-item {
+  background: rgba(0, 0, 0, 0.3);
+  border: 1px solid rgba(0, 255, 255, 0.2);
+  border-radius: 8px;
+  padding: 16px;
+  text-align: center;
+}
+
+.stat-label {
+  color: #00ff99;
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  margin-bottom: 8px;
+}
+
+.stat-value {
+  color: #00ffff;
+  font-size: 24px;
+  font-weight: bold;
+  text-shadow: 0 0 10px rgba(0, 255, 255, 0.5);
+}
+
+.gang-actions {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 12px;
+}
+
+.btn-view-members,
+.btn-view-territory {
+  padding: 12px 24px;
+  background: transparent;
+  border: 2px solid #00ffff;
+  border-radius: 8px;
+  color: #00ffff;
+  font-size: 14px;
+  font-weight: bold;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+.btn-view-members:hover,
+.btn-view-territory:hover {
+  background: rgba(0, 255, 255, 0.2);
+  box-shadow: 0 0 20px rgba(0, 255, 255, 0.4);
+  transform: translateY(-2px);
+}
+
+.btn-view-members:active,
+.btn-view-territory:active {
+  transform: translateY(0);
+  box-shadow: 0 0 10px rgba(0, 255, 255, 0.3),
+              inset 0 0 10px rgba(0, 0, 0, 0.3);
+}
+
+/* Hexagon Animations */
+.hexagon {
+  position: absolute;
+  width: 30px;
+  height: 26px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-sizing: border-box;
+}
+
+.hexagon.stolen {
+  animation: flash-red 0.5s ease;
+}
+
+.hexagon.claimed {
+  animation: flash-green 0.5s ease;
+}
+
+.hexagon:hover {
+  z-index: 10;
+  transform: scale(1.05);
+}
+
+.stolen-indicator {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  font-size: 12px;
+  animation: pulse-warning 1s ease infinite;
+}
+
+@keyframes flash-red {
+  0%, 100% {
+    box-shadow: 0 0 20px rgba(255, 0, 0, 0);
+  }
+  50% {
+    box-shadow: 0 0 30px rgba(255, 0, 0, 0.8);
+  }
+}
+
+@keyframes flash-green {
+  0%, 100% {
+    box-shadow: 0 0 20px rgba(0, 255, 0, 0);
+  }
+  50% {
+    box-shadow: 0 0 30px rgba(0, 255, 0, 0.8);
+  }
+}
+
+@keyframes pulse-warning {
+  0%, 100% {
+    opacity: 1;
+    transform: translate(-50%, -50%) scale(1);
+  }
+  50% {
+    opacity: 0.7;
+    transform: translate(-50%, -50%) scale(1.2);
+  }
+}
+
+/* Neon Glow Effect */
+.hexagon .inner {
+  position: relative;
+}
+
+.hexagon .inner::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  box-shadow: 0 0 15px currentColor;
+  opacity: 0.5;
+  animation: neon-glow 2s ease-in-out infinite;
+}
+
+@keyframes neon-glow {
+  0%, 100% {
+    box-shadow: 0 0 15px currentColor;
+  }
+  50% {
+    box-shadow: 0 0 25px currentColor;
+  }
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .gang-filter {
+    padding: 12px;
+  }
+
+  .gang-stats {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .gang-actions {
+    grid-template-columns: 1fr;
+  }
+}

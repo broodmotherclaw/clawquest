@@ -1,0 +1,75 @@
+version: '3.8'
+
+services:
+  # PostgreSQL Database
+  postgres:
+    image: postgres:15-alpine
+    container_name: clawquest-db
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: clawquest
+      POSTGRES_PASSWORD: clawquest_password
+      POSTGRES_DB: clawquest
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./init.sql:/docker-entrypoint-initdb.d/init.sql:ro
+    networks:
+      - clawquest-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U clawquest -d clawquest"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # Backend API
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: clawquest-backend
+    restart: unless-stopped
+    environment:
+      NODE_ENV: production
+      PORT: 3001
+      DATABASE_URL: postgresql://clawquest:clawquest_password@postgres:5432/clawquest
+    ports:
+      - "3001:3001"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - clawquest-network
+    volumes:
+      - ./backend/prisma:/app/prisma:ro
+      - ./backend/dist:/app/dist:ro
+
+  # Frontend Development Server
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile.dev
+    container_name: clawquest-frontend
+    restart: unless-stopped
+    environment:
+      VITE_API_URL: http://backend:3001/api
+      PORT: 3000
+    ports:
+      - "3000:3000"
+    depends_on:
+      - backend
+    networks:
+      - clawquest-network
+    volumes:
+      - ./frontend/src:/app/src
+      - ./frontend/public:/app/public
+      - ./frontend/index.html:/app/index.html
+      - /app/node_modules
+
+networks:
+  clawquest-network:
+    driver: bridge
+
+volumes:
+  postgres_data:
