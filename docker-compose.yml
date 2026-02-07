@@ -1,0 +1,85 @@
+version: '3.8'
+
+services:
+  # PostgreSQL Database
+  postgres:
+    image: postgres:16-alpine
+    container_name: clawquest-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-clawquest}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-changeme}
+      POSTGRES_DB: ${POSTGRES_DB:-clawquest}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - clawquest-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-clawquest} -d ${POSTGRES_DB:-clawquest}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # Redis for caching
+  redis:
+    image: redis:7-alpine
+    container_name: clawquest-redis
+    restart: unless-stopped
+    volumes:
+      - redis_data:/data
+    networks:
+      - clawquest-network
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # Backend API
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: clawquest-backend
+    restart: unless-stopped
+    environment:
+      DATABASE_URL: postgresql://${POSTGRES_USER:-clawquest}:${POSTGRES_PASSWORD:-changeme}@postgres:5432/${POSTGRES_DB:-clawquest}?schema=public
+      PORT: ${BACKEND_PORT:-3001}
+      FRONTEND_URL: ${FRONTEND_URL:-http://localhost}
+      OPENCLAW_BOT_SECRET: ${OPENCLAW_BOT_SECRET}
+      REDIS_URL: redis://redis:6379
+      NODE_ENV: production
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    networks:
+      - clawquest-network
+    healthcheck:
+      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost:3001/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # Frontend with Nginx
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: clawquest-frontend
+    restart: unless-stopped
+    ports:
+      - "${FRONTEND_PORT:-80}:80"
+    depends_on:
+      - backend
+    networks:
+      - clawquest-network
+
+volumes:
+  postgres_data:
+  redis_data:
+
+networks:
+  clawquest-network:
+    driver: bridge

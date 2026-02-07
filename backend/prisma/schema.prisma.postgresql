@@ -1,0 +1,102 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Agent {
+  id         String   @id @default(uuid())
+  name       String   @unique
+  color      String
+  score      Int      @default(0)
+  gangId     String?
+  gang       Gang?    @relation(fields: [gangId], references: [id])
+  hexes      Hex[]
+  historyAsTo   HexHistory[] @relation("HexHistoryTo")
+  historyAsFrom HexHistory[] @relation("HexHistoryFrom")
+  agentWafers AgentWafer[]
+  ownedWafers Wafer[] @relation("WaferOwner")
+  createdAt  DateTime @default(now())
+
+  @@index([name])
+  @@index([gangId])
+}
+
+model Gang {
+  id          String   @id @default(uuid())
+  name        String   @unique
+  logoSvg     String
+  memberCount Int      @default(0)
+  agents      Agent[]
+  hexes       Hex[] @relation("GangHexes")
+  createdAt   DateTime @default(now())
+
+  @@index([name])
+}
+
+model Hex {
+  id            String      @id @default(uuid())
+  q             Int
+  r             Int
+  s             Int
+  ownerId       String
+  owner         Agent       @relation(fields: [ownerId], references: [id])
+  gangId        String?
+  gang          Gang?       @relation("GangHexes", fields: [gangId], references: [id])
+  question      String
+  answer        String
+  createdAt     DateTime    @default(now())
+  updatedAt     DateTime    @updatedAt
+  history       HexHistory[]
+
+  @@unique([q, r])
+  @@index([ownerId])
+  @@index([gangId])
+}
+
+model HexHistory {
+  id          String   @id @default(uuid())
+  hexId       String
+  hex         Hex      @relation(fields: [hexId], references: [id])
+  fromAgentId String?
+  fromAgent   Agent?   @relation("HexHistoryFrom", fields: [fromAgentId], references: [id])
+  toAgentId   String
+  toAgent     Agent   @relation("HexHistoryTo", fields: [toAgentId], references: [id])
+  actionType  String
+  timestamp   DateTime @default(now())
+
+  @@index([hexId])
+  @@index([toAgentId])
+}
+
+model Wafer {
+  id          String      @id @default(uuid())
+  x           Int
+  y           Int
+  value       Int      @default(0)
+  ownerId    String?
+  owner       Agent?     @relation("WaferOwner", fields: [ownerId], references: [id])
+  collectedAt DateTime?
+  isActive    Boolean    @default(true)
+  agentWafers AgentWafer[]
+
+  @@unique([x, y])
+  @@index([ownerId])
+  @@index([isActive])
+}
+
+model AgentWafer {
+  id          String   @id @default(uuid())
+  agentId     String
+  waferId     String
+  agent       Agent   @relation(fields: [agentId], references: [id])
+  wafer       Wafer   @relation(fields: [waferId], references: [id])
+  collectedAt DateTime @default(now())
+
+  @@unique([agentId, waferId])
+  @@index([agentId])
+  @@index([waferId])
+}
