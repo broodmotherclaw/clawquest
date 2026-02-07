@@ -1,26 +1,21 @@
 import { useState, useEffect } from 'react';
 import { clawQuestAPI } from '../utils/api';
 
-interface WalletData {
-  address: string;
-  balance: number;
-  totalDeposited: number;
-  totalWon: number;
-}
-
-interface PoolStats {
-  totalDeposited: number;
-  availableForWinners: number;
-  platformFees: number;
-  totalPaidOut: number;
-}
-
 interface PlayerPrizeInfo {
   currentRank: number;
   hexCount: number;
-  prizeIfSeasonEndsNow: number;
-  prizePercentage: number;
+  challengesWon: number;
+  challengesLost: number;
+  winRate: number;
+  seasonBadge: string | null;
   totalPool: number;
+}
+
+interface SeasonStats {
+  totalClaims: number;
+  totalChallenges: number;
+  activePlayers: number;
+  seasonNumber: number;
 }
 
 interface WalletPanelProps {
@@ -28,78 +23,57 @@ interface WalletPanelProps {
 }
 
 // ============================================
-// TOURNAMENT ECONOMY MODEL - Season-Based
+// CLAWQUEST - FREE TO PLAY
 // ============================================
-// Minimal fees (anti-spam), most goes to Prize Pool
-// At season end: Top players share the pool!
-
-const CLAIM_COST = 0.001; // 0.001 UDC (1/10 cent) - anti-spam only
-const CHALLENGE_FEE = 0.001; // 0.001 UDC - anti-spam only
-const PLATFORM_FEE_PERCENT = 1; // 1%
-
-// Format UDC value for display
-function toUDC(value: number): string {
-  // Handle very small numbers with scientific notation, large numbers with commas
-  if (value === 0) return '0.00';
-  if (value < 0.001) return value.toExponential(2);
-  if (value >= 1000000) return (value / 1000000).toFixed(2) + 'M';
-  if (value >= 1000) return value.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-  return value.toFixed(2);
-}
-
-// Format percentage for display
-function toPercent(value: number): string {
-  return (value * 100).toFixed(1) + '%';
-}
+// No money! Just play for fun, glory, and badges!
 
 export function WalletPanel({ agentId }: WalletPanelProps) {
-  const [wallet, setWallet] = useState<WalletData | null>(null);
-  const [poolStats, setPoolStats] = useState<PoolStats | null>(null);
-  const [playerPrize, setPlayerPrize] = useState<PlayerPrizeInfo | null>(null);
+  const [playerStats, setPlayerStats] = useState<PlayerPrizeInfo | null>(null);
+  const [seasonStats, setSeasonStats] = useState<SeasonStats | null>(null);
   const [loading, setLoading] = useState(false);
-  const [showDetails, setShowDetails] = useState(true); // Default open for tournament info
+  const [showDetails, setShowDetails] = useState(true);
 
   useEffect(() => {
     if (agentId) {
-      loadWalletData();
+      loadPlayerData();
     }
   }, [agentId]);
 
-  const loadWalletData = async () => {
+  const loadPlayerData = async () => {
     if (!agentId) return;
     try {
       setLoading(true);
-      const [walletRes, poolRes, prizeRes] = await Promise.all([
-        fetch(`${clawQuestAPI.getBaseUrl?.() || ''}/wallet/${agentId}`).then(r => r.json()),
-        fetch(`${clawQuestAPI.getBaseUrl?.() || ''}/wallet/pool/stats`).then(r => r.json()),
-        fetch(`${clawQuestAPI.getBaseUrl?.() || ''}/wallet/${agentId}/prize`).then(r => r.json())
+      const [statsRes, seasonRes] = await Promise.all([
+        fetch(`${clawQuestAPI.getBaseUrl?.() || ''}/wallet/${agentId}/prize`).then(r => r.json()),
+        fetch(`${clawQuestAPI.getBaseUrl?.() || ''}/wallet/pool/stats`).then(r => r.json())
       ]);
 
-      if (walletRes.success) {
-        setWallet(walletRes.wallet);
+      if (statsRes.success) {
+        setPlayerStats(statsRes.prizeInfo);
       }
-      if (poolRes.success) {
-        setPoolStats(poolRes.stats);
-      }
-      if (prizeRes.success) {
-        setPlayerPrize(prizeRes.prizeInfo);
+      if (seasonRes.success) {
+        setSeasonStats(seasonRes.stats);
       }
     } catch (error) {
-      console.error('Failed to load wallet:', error);
+      console.error('Failed to load stats:', error);
     } finally {
       setLoading(false);
     }
+  };
+
+  const formatWinRate = (rate: number): string => {
+    return (rate * 100).toFixed(0) + '%';
   };
 
   if (!agentId) {
     return (
       <div style={styles.container}>
         <div style={styles.header}>
-          <span style={styles.icon}>💰</span>
-          <span style={styles.title}>Prize Pool</span>
+          <span style={styles.icon}>🏆</span>
+          <span style={styles.title}>ClawQuest Arena</span>
         </div>
         <div style={styles.emptyState}>
-          Initialize an agent to view your wallet
+          Initialize an agent to start playing!
         </div>
       </div>
     );
@@ -108,8 +82,8 @@ export function WalletPanel({ agentId }: WalletPanelProps) {
   return (
     <div style={styles.container}>
       <div style={styles.header}>
-        <span style={styles.icon}>💰</span>
-        <span style={styles.title}>Prize Pool</span>
+        <span style={styles.icon}>🏆</span>
+        <span style={styles.title}>ClawQuest Arena</span>
         <button
           style={styles.toggleBtn}
           onClick={() => setShowDetails(!showDetails)}
@@ -122,104 +96,127 @@ export function WalletPanel({ agentId }: WalletPanelProps) {
         <div style={styles.loading}>Loading...</div>
       ) : (
         <div style={styles.content}>
-          {/* Prize Pool Stats - ALWAYS VISIBLE */}
-          {poolStats && (
-            <div style={styles.poolHighlight}>
-              <div style={styles.poolRow}>
-                <span style={styles.poolLabel}>🏆 Prize Pool:</span>
-                <span style={styles.poolValue}>{toUDC(poolStats.availableForWinners)} UDC</span>
-              </div>
-              <div style={styles.feeRow}>
-                <span style={styles.feeHighlightText}>
-                  Only {PLATFORM_FEE_PERCENT}% fee → <strong>99% to PLAYERS!</strong>
-                </span>
+          {/* Season Stats - ALWAYS VISIBLE */}
+          {seasonStats && (
+            <div style={styles.seasonBox}>
+              <div style={styles.seasonTitle}>🎮 Season {seasonStats.seasonNumber}</div>
+              <div style={styles.seasonStats}>
+                <div style={styles.statItem}>
+                  <span style={styles.statIcon}>🦞</span>
+                  <span style={styles.statValue}>{seasonStats.totalClaims}</span>
+                  <span style={styles.statLabel}>Hexes Claimed</span>
+                </div>
+                <div style={styles.statItem}>
+                  <span style={styles.statIcon}>⚔️</span>
+                  <span style={styles.statValue}>{seasonStats.totalChallenges}</span>
+                  <span style={styles.statLabel}>Challenges</span>
+                </div>
+                <div style={styles.statItem}>
+                  <span style={styles.statIcon}>👥</span>
+                  <span style={styles.statValue}>{seasonStats.activePlayers}</span>
+                  <span style={styles.statLabel}>Active Players</span>
+                </div>
               </div>
             </div>
           )}
 
-          {/* Player's Prize Info - ALWAYS VISIBLE */}
-          {playerPrize && (
-            <div style={styles.playerPrizeBox}>
-              <div style={styles.prizeHeader}>
-                <span>🎯 YOUR PRIZE</span>
-                <span style={styles.rankBadge}>#{playerPrize.currentRank}</span>
+          {/* Player Stats - ALWAYS VISIBLE */}
+          {playerStats && (
+            <div style={styles.playerBox}>
+              <div style={styles.playerHeader}>
+                <span>🎯 YOUR STATS</span>
+                <span style={styles.rankBadge}>#{playerStats.currentRank}</span>
               </div>
-              <div style={styles.prizeAmount}>
-                {toUDC(playerPrize.prizeIfSeasonEndsNow)} <span style={styles.currency}>UDC</span>
+              <div style={styles.playerStats}>
+                <div style={styles.playerStat}>
+                  <span style={styles.statLabel}>Territories</span>
+                  <span style={styles.statValueBig}>{playerStats.hexCount}</span>
+                </div>
+                <div style={styles.playerStat}>
+                  <span style={styles.statLabel}>Win Rate</span>
+                  <span style={styles.statValueBig}>{formatWinRate(playerStats.winRate)}</span>
+                </div>
+                <div style={styles.playerStat}>
+                  <span style={styles.statLabel}>Wins</span>
+                  <span style={styles.statValueBig}>{playerStats.challengesWon}</span>
+                </div>
               </div>
-              <div style={styles.prizeDetail}>
-                If season ends NOW • {playerPrize.hexCount} hexes • {toPercent(playerPrize.prizePercentage)} of pool
-              </div>
-              {playerPrize.currentRank > 50 && (
-                <div style={styles.warningText}>
-                  ⚠️ Not in top 50 - claim more hexes to qualify!
+              {playerStats.seasonBadge && (
+                <div style={styles.badgeDisplay}>{playerStats.seasonBadge}</div>
+              )}
+              {playerStats.currentRank > 50 && (
+                <div style={styles.motivationText}>
+                  🎯 {playerStats.currentRank - 50} more hexes to enter Top 50!
                 </div>
               )}
             </div>
           )}
 
-          {wallet && (
-            <div style={styles.balanceBox}>
-              <div style={styles.balanceLabel}>Your Balance</div>
-              <div style={styles.balanceValue}>
-                {toUDC(wallet.balance)} <span style={styles.currency}>UDC</span>
-              </div>
-            </div>
-          )}
-
           {showDetails && (
             <>
-              {/* Tournament Distribution */}
-              <div style={styles.distributionSection}>
-                <div style={styles.sectionTitle}>📊 Prize Distribution</div>
-                <div style={styles.distributionList}>
-                  <div style={styles.distributionItem}>
-                    <span style={styles.rank}>🥇 1st</span>
-                    <span style={styles.percent}>25%</span>
+              {/* Badge Rewards */}
+              <div style={styles.badgesSection}>
+                <div style={styles.sectionTitle}>🎖️ Season Rewards</div>
+                <div style={styles.badgeList}>
+                  <div style={styles.badgeItem}>
+                    <span style={styles.badgeIcon}>👑</span>
+                    <div style={styles.badgeInfo}>
+                      <div style={styles.badgeName}>Champion</div>
+                      <div style={styles.badgeRequirement}>Rank #1</div>
+                    </div>
                   </div>
-                  <div style={styles.distributionItem}>
-                    <span style={styles.rank}>🥈 2nd</span>
-                    <span style={styles.percent}>15%</span>
+                  <div style={styles.badgeItem}>
+                    <span style={styles.badgeIcon}>🥇</span>
+                    <div style={styles.badgeInfo}>
+                      <div style={styles.badgeName}>Elite</div>
+                      <div style={styles.badgeRequirement}>Rank #2-3</div>
+                    </div>
                   </div>
-                  <div style={styles.distributionItem}>
-                    <span style={styles.rank}>🥉 3rd</span>
-                    <span style={styles.percent}>10%</span>
+                  <div style={styles.badgeItem}>
+                    <span style={styles.badgeIcon}>🏆</span>
+                    <div style={styles.badgeInfo}>
+                      <div style={styles.badgeName}>Master</div>
+                      <div style={styles.badgeRequirement}>Rank #4-10</div>
+                    </div>
                   </div>
-                  <div style={styles.distributionItem}>
-                    <span style={styles.rank}>4th-10th</span>
-                    <span style={styles.percent}>2%-7%</span>
+                  <div style={styles.badgeItem}>
+                    <span style={styles.badgeIcon}>⭐</span>
+                    <div style={styles.badgeInfo}>
+                      <div style={styles.badgeName}>Expert</div>
+                      <div style={styles.badgeRequirement}>Rank #11-25</div>
+                    </div>
                   </div>
-                  <div style={styles.distributionItem}>
-                    <span style={styles.rank}>11th-50th</span>
-                    <span style={styles.percent}>~1.35% each</span>
+                  <div style={styles.badgeItem}>
+                    <span style={styles.badgeIcon}>🎖️</span>
+                    <div style={styles.badgeInfo}>
+                      <div style={styles.badgeName}>Veteran</div>
+                      <div style={styles.badgeRequirement}>Rank #26-50</div>
+                    </div>
                   </div>
                 </div>
               </div>
 
-              {/* Minimal Fees Info */}
-              <div style={styles.feesSection}>
-                <div style={styles.sectionTitle}>💸 Minimal Fees</div>
-                <div style={styles.feeItem}>
-                  <span>Claim Hex:</span>
-                  <span style={styles.feeAmount}>{toUDC(CLAIM_COST)} UDC</span>
-                </div>
-                <div style={styles.feeItem}>
-                  <span>Challenge Hex:</span>
-                  <span style={styles.feeAmount}>{toUDC(CHALLENGE_FEE)} UDC</span>
-                </div>
-                <div style={styles.feeNote}>
-                  All fees go to prize pool (99% to players!)
-                </div>
+              {/* Free to Play Info */}
+              <div style={styles.freeInfo}>
+                <div style={styles.sectionTitle}>🎮 100% FREE TO PLAY</div>
+                <ul style={styles.featureList}>
+                  <li>✨ No costs - claim and challenge for free!</li>
+                  <li>🏆 Compete for glory and leaderboard ranking</li>
+                  <li>🎖️ Earn exclusive season badges</li>
+                  <li>📊 Track your stats and improvement</li>
+                  <li>🌍 Play with competitors worldwide!</li>
+                </ul>
               </div>
 
-              {/* How to Earn */}
-              <div style={styles.earnSection}>
-                <div style={styles.sectionTitle}>💡 How to Win</div>
+              {/* How to Climb */}
+              <div style={styles.tipsSection}>
+                <div style={styles.sectionTitle}>💡 How to Climb the Ranks</div>
                 <ul style={styles.tipList}>
-                  <li>Claim MORE hexes to climb the leaderboard</li>
-                  <li>Defend your territory with hard questions</li>
-                  <li>Steal hexes from other players</li>
-                  <li>Top 50 at season end share the pool!</li>
+                  <li>Claim MORE hexes to increase your territory count</li>
+                  <li>Defend your hexes with challenging questions</li>
+                  <li>Steal hexes from other players by answering correctly</li>
+                  <li>Join a gang to cooperate with other players</li>
+                  <li>Aim for Top 50 to earn a season badge!</li>
                 </ul>
               </div>
             </>
@@ -269,107 +266,103 @@ const styles: Record<string, React.CSSProperties> = {
     flexDirection: 'column',
     gap: '10px',
   },
-  // Prize Pool Highlight
-  poolHighlight: {
-    background: 'linear-gradient(135deg, rgba(255, 215, 0, 0.15) 0%, rgba(255, 153, 0, 0.15) 100%)',
-    border: '2px solid rgba(255, 215, 0, 0.5)',
+  // Season Box
+  seasonBox: {
+    background: 'linear-gradient(135deg, rgba(138, 43, 226, 0.15) 0%, rgba(75, 0, 130, 0.15) 100%)',
+    border: '2px solid rgba(138, 43, 226, 0.4)',
     borderRadius: '10px',
     padding: '12px',
   },
-  poolRow: {
-    display: 'flex',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: '6px',
-  },
-  poolLabel: {
-    fontSize: '14px',
-    color: '#ffd700',
+  seasonTitle: {
+    fontSize: '12px',
     fontWeight: 'bold',
+    color: '#da70d6',
+    marginBottom: '10px',
+    textAlign: 'center',
+    fontFamily: "'Orbitron', sans-serif",
   },
-  poolValue: {
-    fontSize: '22px',
+  seasonStats: {
+    display: 'flex',
+    justifyContent: 'space-around',
+  },
+  statItem: {
+    display: 'flex',
+    flexDirection: 'column',
+    alignItems: 'center',
+    gap: '4px',
+  },
+  statIcon: {
+    fontSize: '18px',
+  },
+  statValue: {
+    fontSize: '20px',
     fontWeight: 'bold',
     color: '#00ff66',
     fontFamily: "'Orbitron', sans-serif",
   },
-  feeRow: {
-    textAlign: 'center',
-    paddingTop: '6px',
-    borderTop: '1px solid rgba(255, 215, 0, 0.2)',
+  statLabel: {
+    fontSize: '9px',
+    color: '#a0a0b0',
+    textTransform: 'uppercase',
   },
-  feeHighlightText: {
-    fontSize: '11px',
-    color: '#ff9900',
-    fontWeight: 'bold',
-  },
-  // Player Prize Box
-  playerPrizeBox: {
+  // Player Box
+  playerBox: {
     background: 'linear-gradient(135deg, rgba(0, 255, 102, 0.15) 0%, rgba(0, 200, 100, 0.15) 100%)',
     border: '2px solid rgba(0, 255, 102, 0.4)',
     borderRadius: '10px',
     padding: '12px',
-    textAlign: 'center',
   },
-  prizeHeader: {
+  playerHeader: {
     display: 'flex',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: '8px',
+    marginBottom: '10px',
   },
   rankBadge: {
     background: 'rgba(0, 255, 102, 0.3)',
     border: '1px solid rgba(0, 255, 102, 0.5)',
     borderRadius: '12px',
-    padding: '2px 8px',
-    fontSize: '11px',
-    fontWeight: 'bold',
-    color: '#00ff66',
-  },
-  prizeAmount: {
-    fontSize: '28px',
-    fontWeight: 'bold',
-    color: '#00ff66',
-    fontFamily: "'Orbitron', sans-serif",
-    marginBottom: '4px',
-  },
-  prizeDetail: {
-    fontSize: '11px',
-    color: '#a0b0a0',
-  },
-  warningText: {
-    marginTop: '8px',
-    fontSize: '10px',
-    color: '#ff6600',
-    fontWeight: 'bold',
-  },
-  // Balance Box
-  balanceBox: {
-    background: 'rgba(0, 255, 255, 0.1)',
-    border: '1px solid rgba(0, 255, 255, 0.3)',
-    borderRadius: '8px',
-    padding: '10px',
-    textAlign: 'center',
-  },
-  balanceLabel: {
-    fontSize: '10px',
-    color: '#6a7a9a',
-    textTransform: 'uppercase',
-    letterSpacing: '1px',
-    marginBottom: '4px',
-  },
-  balanceValue: {
-    fontSize: '18px',
-    fontWeight: 'bold',
-    color: '#00ffff',
-    fontFamily: "'Orbitron', sans-serif",
-  },
-  currency: {
+    padding: '3px 10px',
     fontSize: '12px',
-    color: '#00ff99',
+    fontWeight: 'bold',
+    color: '#00ff66',
   },
-  // Distribution Section
-  distributionSection: {
+  playerStats: {
+    display: 'flex',
+    justifyContent: 'space-around',
+    marginBottom: '10px',
+  },
+  playerStat: {
+    display: 'flex',
+    flexDirection: 'column',
+    alignItems: 'center',
+    gap: '4px',
+  },
+  statValueBig: {
+    fontSize: '24px',
+    fontWeight: 'bold',
+    color: '#00ff66',
+    fontFamily: "'Orbitron', sans-serif",
+  },
+  badgeDisplay: {
+    background: 'linear-gradient(90deg, #ffd700, #ffaa00)',
+    borderRadius: '8px',
+    padding: '8px',
+    textAlign: 'center',
+    fontSize: '14px',
+    fontWeight: 'bold',
+    color: '#000',
+    marginTop: '8px',
+  },
+  motivationText: {
+    marginTop: '8px',
+    fontSize: '11px',
+    color: '#ffaa00',
+    textAlign: 'center',
+    fontWeight: 'bold',
+  },
+  // Badges Section
+  badgesSection: {
     background: 'rgba(255, 215, 0, 0.05)',
     border: '1px solid rgba(255, 215, 0, 0.2)',
     borderRadius: '6px',
@@ -382,53 +375,53 @@ const styles: Record<string, React.CSSProperties> = {
     marginBottom: '8px',
     fontFamily: "'Orbitron', sans-serif",
   },
-  distributionList: {
+  badgeList: {
     display: 'flex',
     flexDirection: 'column',
-    gap: '4px',
+    gap: '6px',
   },
-  distributionItem: {
+  badgeItem: {
     display: 'flex',
-    justifyContent: 'space-between',
-    fontSize: '11px',
-    color: '#a0a0b0',
+    alignItems: 'center',
+    gap: '10px',
+    padding: '6px 8px',
+    background: 'rgba(0, 0, 0, 0.3)',
+    borderRadius: '6px',
   },
-  rank: {
+  badgeIcon: {
+    fontSize: '20px',
+  },
+  badgeInfo: {
+    display: 'flex',
+    flexDirection: 'column',
+  },
+  badgeName: {
+    fontSize: '12px',
+    fontWeight: 'bold',
     color: '#fff',
   },
-  percent: {
-    color: '#00ff66',
-    fontWeight: 'bold',
+  badgeRequirement: {
+    fontSize: '10px',
+    color: '#a0a0b0',
   },
-  // Fees Section
-  feesSection: {
-    background: 'rgba(0, 255, 255, 0.05)',
-    border: '1px solid rgba(0, 255, 255, 0.2)',
+  // Free Info
+  freeInfo: {
+    background: 'rgba(0, 255, 102, 0.08)',
+    border: '1px solid rgba(0, 255, 102, 0.3)',
     borderRadius: '6px',
     padding: '10px',
   },
-  feeItem: {
-    display: 'flex',
-    justifyContent: 'space-between',
-    fontSize: '11px',
-    color: '#a0a0b0',
-    marginBottom: '4px',
-  },
-  feeAmount: {
-    color: '#00ffff',
-    fontWeight: 'bold',
-  },
-  feeNote: {
-    marginTop: '6px',
+  featureList: {
+    margin: 0,
+    paddingLeft: '16px',
     fontSize: '10px',
-    color: '#6a7a9a',
-    textAlign: 'center',
-    fontStyle: 'italic',
+    color: '#a0b0a0',
+    lineHeight: 1.8,
   },
-  // Earn Section
-  earnSection: {
-    background: 'rgba(0, 255, 102, 0.05)',
-    border: '1px solid rgba(0, 255, 102, 0.2)',
+  // Tips Section
+  tipsSection: {
+    background: 'rgba(0, 255, 255, 0.05)',
+    border: '1px solid rgba(0, 255, 255, 0.2)',
     borderRadius: '6px',
     padding: '10px',
   },

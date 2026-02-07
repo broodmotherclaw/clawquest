@@ -3,101 +3,83 @@ import { PrismaClient } from '@prisma/client';
 const prisma = new PrismaClient();
 
 // ============================================
-// TOURNAMENT ECONOMY MODEL - Season-Based
+// CLAWQUEST - FREE TO PLAY EDITION
 // ============================================
-// Minimal fees (anti-spam), most goes to Prize Pool
-// At season end: Top players share the pool!
+// No real money! Just ClawPoints for fun and competition
+// Play for glory, leaderboard ranking, and badges!
 
-// Fee percentage we keep (minimal - just for sustainability)
-const PLATFORM_FEE_PERCENT = 0.01; // 1%
+// All actions are FREE - no costs!
+const CLAIM_COST = 0; // Completely free
+const CHALLENGE_FEE = 0; // Completely free
 
-// Anti-spam minimal costs (NOT profit sources!)
-const CLAIM_COST = 0.001; // 0.001 UDC (1/10 cent) - anti-spam only
-const CHALLENGE_FEE = 0.001; // 0.001 UDC - anti-spam only
-
-// Prize distribution for top ranks (% of total pool)
-const PRIZE_DISTRIBUTION: Record<number, number> = {
-  1: 0.25,   // 1st place: 25%
-  2: 0.15,   // 2nd place: 15%
-  3: 0.10,   // 3rd place: 10%
-  4: 0.07,   // 4th place: 7%
-  5: 0.05,   // 5th place: 5%
-  6: 0.04,   // 6th place: 4%
-  7: 0.03,   // 7th place: 3%
-  8: 0.025,  // 8th place: 2.5%
-  9: 0.025,  // 9th place: 2.5%
-  10: 0.02,  // 10th place: 2%
-};
-
-// Remaining 54% distributed to ranks 11-50 (~1.35% each)
-const REMAINING_SHARE = 1 - Object.values(PRIZE_DISTRIBUTION).reduce((a, b) => a + b, 0);
-const TOP_PLAYERS_COUNT = 50; // Top 50 get prizes
+// Season ranking - top players get glory and badges
+const TOP_PLAYERS_COUNT = 50; // Top 50 get season badges
 
 export interface PrizePool {
-  totalDeposited: number;
-  availableForWinners: number;
-  platformFees: number;
-  totalPaidOut: number;
+  totalClaims: number;       // Total hexes claimed this season
+  totalChallenges: number;   // Total challenges made
+  activePlayers: number;     // Number of active players
+  seasonNumber: number;      // Current season number
 }
 
 export interface PlayerPrizeInfo {
   currentRank: number;
   hexCount: number;
-  prizeIfSeasonEndsNow: number;
-  prizePercentage: number;
-  totalPool: number;
+  challengesWon: number;
+  challengesLost: number;
+  winRate: number;
+  seasonBadge: string | null;  // Badge if in top 50
+  totalPool: number;           // Total season activity
+}
+
+export interface PlayerStats {
+  agentId: string;
+  totalHexes: number;
+  totalClaims: number;
+  totalChallenges: number;
+  challengesWon: number;
+  challengesLost: number;
+  currentStreak: number;
+  bestStreak: number;
+  rank: number;
 }
 
 /**
- * Get current prize pool stats
+ * Get season stats (formerly "prize pool" - now just activity stats)
  */
 export async function getPrizePoolStats(): Promise<PrizePool> {
-  // All claim fees + challenge fees go to pool
-  const allHexes = await prisma.hex.findMany();
-  const totalFeesCollected = allHexes.length * (CLAIM_COST + CHALLENGE_FEE);
+  const totalClaims = await prisma.hex.count();
+  const totalChallenges = await prisma.hexHistory.count();
 
-  const deposits = await prisma.wallet.aggregate({
-    _sum: { balance: true, totalDeposited: true }
+  // Count unique players (agents with at least one hex)
+  const activePlayers = await prisma.hex.groupBy({
+    by: ['ownerId'],
   });
-
-  const payouts = await prisma.prizePayout.aggregate({
-    _sum: { amount: true }
-  });
-
-  const totalDeposited = (deposits._sum.totalDeposited || 0) + totalFeesCollected;
-  const totalPaidOut = payouts._sum.amount || 0;
-
-  // Minimal platform fee
-  const platformFees = totalDeposited * PLATFORM_FEE_PERCENT;
-  const availableForWinners = totalDeposited - platformFees - totalPaidOut;
 
   return {
-    totalDeposited,
-    availableForWinners: Math.max(0, availableForWinners),
-    platformFees,
-    totalPaidOut
+    totalClaims,
+    totalChallenges,
+    activePlayers: activePlayers.length,
+    seasonNumber: 1, // Can be incremented each season
   };
 }
 
 /**
- * Get claim cost (cost to claim a neutral hex)
- * This money goes into the prize pool
+ * Get claim cost - COMPLETELY FREE NOW!
  */
 export function getClaimCost(): number {
-  return CLAIM_COST;
+  return CLAIM_COST; // 0 = FREE!
 }
 
 /**
- * Get challenge fee (cost to attempt a challenge)
- * All fees go to prize pool
+ * Get challenge fee - COMPLETELY FREE NOW!
  */
 export function getChallengeFee(): number {
-  return CHALLENGE_FEE;
+  return CHALLENGE_FEE; // 0 = FREE!
 }
 
 /**
- * Calculate player's current prize based on their rank
- * Returns: "If season ends now, you get X UDC"
+ * Get player's current standing and potential season badge
  */
 export async function getPlayerPrizeInfo(agentId: string): Promise<PlayerPrizeInfo | null> {
   // Get player's hex count
@@ -108,6 +90,23 @@ export async function getPlayerPrizeInfo(agentId: string): Promise<PlayerPrizeIn
   if (playerHexes === 0) {
     return null;
   }
+
+  // Get challenge stats
+  const challengesWon = await prisma.hexHistory.count({
+    where: { toAgentId: agentId, actionType: 'STEAL' }
+  });
+
+  const challengesLost = await prisma.hexHistory.count({
+    where: {
+      fromAgentId: agentId,
+      actionType: 'STEAL',
+      // Only count as loss if hex was taken (history entry with fromAgent)
+    }
+  });
+
+  // Calculate win rate
+  const totalChallenges = challengesWon + challengesLost;
+  const winRate = totalChallenges > 0 ? challengesWon / totalChallenges : 0;
 
   // Get all players' hex counts to determine rank
   const allPlayers = await prisma.hex.groupBy({
@@ -123,200 +122,84 @@ export async function getPlayerPrizeInfo(agentId: string): Promise<PlayerPrizeIn
   // Find player's rank
   const playerRank = sortedPlayers.findIndex(p => p.agentId === agentId) + 1;
 
-  if (playerRank > TOP_PLAYERS_COUNT) {
-    // Not in top 50, no prize
-    return {
-      currentRank: playerRank,
-      hexCount: playerHexes,
-      prizeIfSeasonEndsNow: 0,
-      prizePercentage: 0,
-      totalPool: (await getPrizePoolStats()).availableForWinners
-    };
+  // Determine badge based on rank
+  let seasonBadge: string | null = null;
+  if (playerRank <= TOP_PLAYERS_COUNT) {
+    if (playerRank === 1) seasonBadge = '👑 Champion';
+    else if (playerRank <= 3) seasonBadge = '🥇 Top 3 Elite';
+    else if (playerRank <= 10) seasonBadge = '🏆 Top 10 Master';
+    else if (playerRank <= 25) seasonBadge = '⭐ Top 25 Expert';
+    else seasonBadge = '🎖️ Top 50 Veteran';
   }
-
-  // Calculate prize based on rank
-  const pool = await getPrizePoolStats();
-  let prizePercentage: number;
-
-  if (playerRank <= 10) {
-    prizePercentage = PRIZE_DISTRIBUTION[playerRank as keyof typeof PRIZE_DISTRIBUTION];
-  } else {
-    // Ranks 11-50 share the remaining pool
-    prizePercentage = REMAINING_SHARE / (TOP_PLAYERS_COUNT - 10);
-  }
-
-  const prizeIfSeasonEndsNow = Math.round(pool.availableForWinners * prizePercentage * 100) / 100;
 
   return {
     currentRank: playerRank,
     hexCount: playerHexes,
-    prizeIfSeasonEndsNow,
-    prizePercentage,
-    totalPool: pool.availableForWinners
+    challengesWon,
+    challengesLost,
+    winRate,
+    seasonBadge,
+    totalPool: (await getPrizePoolStats()).activePlayers
   };
 }
 
 /**
- * Calculate prize for winning a tournament/season
+ * Get detailed player stats
  */
-export function calculateTournamentPrize(rank: number, totalPool: number): number {
-  if (rank > TOP_PLAYERS_COUNT) return 0;
+export async function getPlayerStats(agentId: string): Promise<PlayerStats | null> {
+  const hexes = await prisma.hex.findMany({
+    where: { ownerId: agentId }
+  });
 
-  let percentage: number;
-  if (rank <= 10) {
-    percentage = PRIZE_DISTRIBUTION[rank as keyof typeof PRIZE_DISTRIBUTION] || 0;
-  } else {
-    // Ranks 11-50 share the remaining pool
-    percentage = REMAINING_SHARE / (TOP_PLAYERS_COUNT - 10);
-  }
+  if (hexes.length === 0) return null;
 
-  return Math.round(totalPool * percentage * 100) / 100;
-}
+  const claims = hexes.length;
+  const challengesWon = await prisma.hexHistory.count({
+    where: { toAgentId: agentId, actionType: 'STEAL' }
+  });
 
-/**
- * Calculate economics for different scenarios
- */
-export function calculateEconomics() {
+  const challengesLost = await prisma.hexHistory.count({
+    where: { fromAgentId: agentId, actionType: 'STEAL' }
+  });
+
+  const totalChallenges = challengesWon + challengesLost;
+
+  // Get all players for ranking
+  const allPlayers = await prisma.hex.groupBy({
+    by: ['ownerId'],
+    _count: { id: true }
+  });
+
+  const sortedPlayers = allPlayers
+    .map(p => ({ agentId: p.ownerId, hexCount: p._count.id }))
+    .sort((a, b) => b.hexCount - a.hexCount);
+
+  const rank = sortedPlayers.findIndex(p => p.agentId === agentId) + 1;
+
   return {
-    // Claim: Player pays 0.001 UDC → Pool gets +0.001
-    claim: {
-      playerCost: CLAIM_COST,
-      poolChange: +CLAIM_COST,
-      playerNet: -CLAIM_COST,
-      description: 'Minimal anti-spam fee, goes to prize pool'
-    },
-    // Challenge: Player pays 0.001 → Pool gets +0.001
-    challenge: {
-      playerCost: CHALLENGE_FEE,
-      poolChange: +CHALLENGE_FEE,
-      playerNet: -CHALLENGE_FEE,
-      description: 'Minimal anti-spam fee, goes to prize pool'
-    },
-    // Tournament: Top players share the pool!
-    tournament: {
-      description: 'At season end, top 50 players share the prize pool!',
-      top10: Object.values(PRIZE_DISTRIBUTION).slice(0, 10),
-      remaining: REMAINING_SHARE,
-      pool: '99% of all fees collected go to players!'
-    }
+    agentId,
+    totalHexes: hexes.length,
+    totalClaims: claims,
+    totalChallenges,
+    challengesWon,
+    challengesLost,
+    currentStreak: 0, // TODO: Track streaks
+    bestStreak: 0, // TODO: Track best streak
+    rank
   };
 }
 
 /**
- * Process a prize payout to a winner (at season end)
- */
-export async function processPayout(
-  agentId: string,
-  amount: number,
-  reason: string
-): Promise<{ success: boolean; txHash?: string; error?: string }> {
-  try {
-    const stats = await getPrizePoolStats();
-
-    // Check if enough funds available
-    if (amount > stats.availableForWinners) {
-      return { success: false, error: 'Insufficient prize pool funds' };
-    }
-
-    // Get agent's wallet
-    const wallet = await prisma.wallet.findUnique({
-      where: { agentId }
-    });
-
-    if (!wallet) {
-      return { success: false, error: 'Agent wallet not found' };
-    }
-
-    // Create payout record
-    const payout = await prisma.prizePayout.create({
-      data: {
-        agentId,
-        amount,
-        reason,
-        status: 'PENDING',
-        walletAddress: wallet.address
-      }
-    });
-
-    // In production, this would trigger a blockchain transaction
-    // For now, we just update the agent's wallet balance
-    await prisma.wallet.update({
-      where: { agentId },
-      data: {
-        balance: { increment: amount },
-        totalWon: { increment: amount }
-      }
-    });
-
-    await prisma.prizePayout.update({
-      where: { id: payout.id },
-      data: {
-        status: 'COMPLETED',
-        processedAt: new Date()
-      }
-    });
-
-    return {
-      success: true,
-      txHash: `simulated_tx_${Date.now()}` // In production: actual blockchain tx hash
-    };
-  } catch (error: any) {
-    console.error('Payout error:', error);
-    return { success: false, error: error.message };
-  }
-}
-
-/**
- * Agent deposits credits to play
- */
-export async function processDeposit(
-  agentId: string,
-  amount: number,
-  txHash: string
-): Promise<{ success: boolean; error?: string }> {
-  try {
-    // Update or create wallet
-    await prisma.wallet.upsert({
-      where: { agentId },
-      create: {
-        agentId,
-        balance: amount,
-        totalDeposited: amount,
-        address: `derived_from_${agentId}` // In production: actual wallet address
-      },
-      update: {
-        balance: { increment: amount },
-        totalDeposited: { increment: amount }
-      }
-    });
-
-    // Record transaction
-    await prisma.deposit.create({
-      data: {
-        agentId,
-        amount,
-        txHash,
-        status: 'CONFIRMED'
-      }
-    });
-
-    return { success: true };
-  } catch (error: any) {
-    console.error('Deposit error:', error);
-    return { success: false, error: error.message };
-  }
-}
-
-/**
- * Get current leaderboard with prize info
+ * Get leaderboard with badges
  */
 export async function getLeaderboardWithPrizes(): Promise<Array<{
   rank: number;
   agentId: string;
   agentName: string;
   hexCount: number;
-  prizeIfSeasonEndsNow: number;
-  prizePercentage: number;
+  challengesWon: number;
+  winRate: number;
+  badge: string | null;
 }>> {
   const allPlayers = await prisma.hex.groupBy({
     by: ['ownerId'],
@@ -330,25 +213,39 @@ export async function getLeaderboardWithPrizes(): Promise<Array<{
           where: { id: p.ownerId },
           select: { name: true }
         });
+
+        const challengesWon = await prisma.hexHistory.count({
+          where: { toAgentId: p.ownerId, actionType: 'STEAL' }
+        });
+
+        const challengesLost = await prisma.hexHistory.count({
+          where: { fromAgentId: p.ownerId, actionType: 'STEAL' }
+        });
+
+        const total = challengesWon + challengesLost;
+        const winRate = total > 0 ? challengesWon / total : 0;
+
         return {
           agentId: p.ownerId,
           agentName: agent?.name || 'Unknown',
-          hexCount: p._count.id
+          hexCount: p._count.id,
+          challengesWon,
+          winRate
         };
       })
-    )).sort((a, b) => b.hexCount - a.hexCount)
+    )).sort((a, b) => b.hexCount - a.hexCount || b.winRate - a.winRate)
   );
-
-  const pool = await getPrizePoolStats();
 
   return sortedPlayers.map((player, index) => {
     const rank = index + 1;
-    let prizePercentage = 0;
+    let badge: string | null = null;
 
-    if (rank <= 10) {
-      prizePercentage = PRIZE_DISTRIBUTION[rank as keyof typeof PRIZE_DISTRIBUTION] || 0;
-    } else if (rank <= TOP_PLAYERS_COUNT) {
-      prizePercentage = REMAINING_SHARE / (TOP_PLAYERS_COUNT - 10);
+    if (rank <= TOP_PLAYERS_COUNT) {
+      if (rank === 1) badge = '👑 Champion';
+      else if (rank <= 3) badge = '🥇 Top 3';
+      else if (rank <= 10) badge = '🏆 Top 10';
+      else if (rank <= 25) badge = '⭐ Top 25';
+      else badge = '🎖️ Top 50';
     }
 
     return {
@@ -356,10 +253,70 @@ export async function getLeaderboardWithPrizes(): Promise<Array<{
       agentId: player.agentId,
       agentName: player.agentName,
       hexCount: player.hexCount,
-      prizeIfSeasonEndsNow: Math.round(pool.availableForWinners * prizePercentage * 100) / 100,
-      prizePercentage
+      challengesWon: player.challengesWon,
+      winRate: player.winRate,
+      badge
     };
   });
+}
+
+/**
+ * Calculate economics for display (all FREE now!)
+ */
+export function calculateEconomics() {
+  return {
+    // Everything is FREE!
+    claim: {
+      playerCost: CLAIM_COST,
+      description: '100% FREE - Just claim and play!',
+      poolChange: '+1 hex claimed'
+    },
+    challenge: {
+      playerCost: CHALLENGE_FEE,
+      description: '100% FREE - Challenge for glory!',
+      poolChange: '+1 challenge made'
+    },
+    tournament: {
+      description: 'Season End: Top 50 get exclusive badges!',
+      rewards: [
+        '👑 #1: Champion Badge',
+        '🥇 #2-3: Elite Badge',
+        '🏆 #4-10: Master Badge',
+        '⭐ #11-25: Expert Badge',
+        '🎖️ #26-50: Veteran Badge'
+      ]
+    },
+    keyPoints: [
+      '🎮 100% FREE TO PLAY - No costs whatsoever!',
+      '🏆 Compete for glory and leaderboard ranking',
+      '🎖️ Earn season badges for top positions',
+      '📊 Track your stats and improvement',
+      '🌍 Play with people worldwide!'
+    ],
+    sustainability: 'Free-to-Play Model: No money involved, just fun competition!'
+  };
+}
+
+// Note: processPayout and processDeposit are kept for backward compatibility
+// but do nothing in the free version
+export async function processPayout(
+  agentId: string,
+  amount: number,
+  reason: string
+): Promise<{ success: boolean; txHash?: string; error?: string }> {
+  // In free version, just log the achievement
+  console.log(`🏆 ${reason}: Agent ${agentId} awarded ${amount} (virtual) points`);
+  return { success: true, txHash: 'free_to_play' };
+}
+
+export async function processDeposit(
+  agentId: string,
+  amount: number,
+  txHash: string
+): Promise<{ success: boolean; error?: string }> {
+  // In free version, everyone starts with unlimited play
+  console.log(`🎮 Agent ${agentId} joined the game (free version)`);
+  return { success: true };
 }
 
 export default {
@@ -367,9 +324,9 @@ export default {
   getClaimCost,
   getChallengeFee,
   calculateEconomics,
-  calculateTournamentPrize,
   processPayout,
   processDeposit,
   getPlayerPrizeInfo,
+  getPlayerStats,
   getLeaderboardWithPrizes
 };

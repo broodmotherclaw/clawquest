@@ -5,15 +5,12 @@ interface HowToEarnProps {
   onClose: () => void;
 }
 
-// Prize constants - UDC only (in-game currency)
-const BASE_PRIZE_UDC = 0.1; // 0.1 UDC per win - sustainable economy
-const PLATFORM_FEE = 1; // 1%
-const PLAYER_SHARE = 99; // 99%
+// ============================================
+// CLAWQUEST - FREE TO PLAY
+// ============================================
 
 export function HowToEarn({ isOpen, onClose }: HowToEarnProps) {
   const [activeTab, setActiveTab] = useState<'overview' | 'strategies' | 'faq'>('overview');
-
-  const prizePerWin = BASE_PRIZE_UDC;
 
   if (!isOpen) return null;
 
@@ -23,8 +20,8 @@ export function HowToEarn({ isOpen, onClose }: HowToEarnProps) {
         {/* Header */}
         <div style={styles.header}>
           <div>
-            <h2 style={styles.title}>💰 How to Earn Money</h2>
-            <span style={styles.subtitle}>Player-First Economy: You keep 99%!</span>
+            <h2 style={styles.title}>🎮 How to Play ClawQuest</h2>
+            <span style={styles.subtitle}>100% FREE • Compete for Glory & Badges!</span>
           </div>
           <button style={styles.closeBtn} onClick={onClose}>×</button>
         </div>
@@ -55,50 +52,52 @@ export function HowToEarn({ isOpen, onClose }: HowToEarnProps) {
         <div style={styles.content}>
           {activeTab === 'overview' && (
             <>
-              {/* Prize Banner */}
+              {/* Free to Play Banner */}
               <div style={styles.prizeBanner}>
-                <div style={styles.prizeIcon}>🏆</div>
+                <div style={styles.prizeIcon}>🎮</div>
                 <div style={styles.prizeText}>
-                  <div style={styles.prizeLabel}>Prize Per Win</div>
-                  <div style={styles.prizeAmount}>{prizePerWin} UDC</div>
-
+                  <div style={styles.prizeLabel}>100% FREE TO PLAY</div>
+                  <div style={styles.prizeAmount}>No Costs • No Deposits • Just Fun!</div>
                 </div>
               </div>
 
-              {/* Fee Structure */}
+              {/* What You Earn */}
               <div style={styles.feeBox}>
-                <div style={styles.feeTitle}>💎 Industry-Lowest Fees</div>
-                <div style={styles.feeGrid}>
-                  <div style={styles.feeItem}>
-                    <div style={styles.feeValue}>{PLATFORM_FEE}%</div>
-                    <div style={styles.feeLabel}>Platform Fee</div>
+                <div style={styles.feeTitle}>🎖️ What You Can Earn</div>
+                <div style={styles.rewardGrid}>
+                  <div style={styles.rewardItem}>
+                    <div style={styles.rewardIcon}>🏆</div>
+                    <div style={styles.rewardLabel}>Leaderboard Glory</div>
                   </div>
-                  <div style={styles.feeArrow}>→</div>
-                  <div style={styles.feeItem}>
-                    <div style={styles.feeValue}>{PLAYER_SHARE}%</div>
-                    <div style={styles.feeLabel}>To YOU!</div>
+                  <div style={styles.rewardItem}>
+                    <div style={styles.rewardIcon}>🎖️</div>
+                    <div style={styles.rewardLabel}>Season Badges</div>
+                  </div>
+                  <div style={styles.rewardItem}>
+                    <div style={styles.rewardIcon}>👑</div>
+                    <div style={styles.rewardLabel}>Champion Title</div>
                   </div>
                 </div>
                 <p style={styles.feeDesc}>
-                  Most platforms take 5-20%. We take only 1% because we believe in 
-                  <strong> rewarding players!</strong>
+                  Claim territory, defend it with tough questions, and climb the ranks!
+                  <strong> Everything is completely free!</strong>
                 </p>
               </div>
 
-              {/* Three Ways to Earn */}
+              {/* Three Ways to Play */}
               <div style={styles.methodsSection}>
-                <h3 style={styles.sectionTitle}>🎯 3 Ways to Make Money</h3>
-                
+                <h3 style={styles.sectionTitle}>🎯 3 Ways to Play</h3>
+
                 <div style={styles.methodCard}>
                   <div style={styles.methodNumber}>1</div>
                   <div style={styles.methodContent}>
                     <h4 style={styles.methodName}>⚔️ Steal Enemy Territory</h4>
                     <p style={styles.methodDesc}>
-                      Find hexes owned by other players, answer their defense questions correctly, 
-                      and <strong>instantly win {prizePerWin} UDC</strong>!
+                      Find hexes owned by other players, answer their defense questions correctly,
+                      and <strong>take their territory!</strong> Climb the leaderboard!
                     </p>
                     <div style={styles.proTip}>
-                      <strong>💡 Pro Tip:</strong> Look for questions in your expertise area. 
+                      <strong>💡 Pro Tip:</strong> Look for questions in your expertise area.
                       Failed attempts are logged, so choose wisely!
                     </div>
                   </div>
@@ -109,11 +108,11 @@ export function HowToEarn({ isOpen, onClose }: HowToEarnProps) {
                   <div style={styles.methodContent}>
                     <h4 style={styles.methodName}>🏴 Claim & Defend Territory</h4>
                     <p style={styles.methodDesc}>
-                      Claim unclaimed hexes with defense questions. When others try to steal 
-                      and <strong>fail</strong>, you earn passive income!
+                      Claim unclaimed hexes with defense questions. When others try to steal
+                      and <strong>fail</strong>, you keep the territory!
                     </p>
                     <div style={styles.proTip}>
-                      <strong>💡 Pro Tip:</strong> Create questions that are hard but fair. 
+                      <strong>💡 Pro Tip:</strong> Create questions that are hard but fair.
                       Too easy = stolen quickly. Too hard = no one tries.
                     </div>
                   </div>
@@ -122,32 +121,33 @@ export function HowToEarn({ isOpen, onClose }: HowToEarnProps) {
                 <div style={styles.methodCard}>
                   <div style={styles.methodNumber}>3</div>
                   <div style={styles.methodContent}>
-                    <h4 style={styles.methodName}>🏆 Win Tournaments</h4>
+                    <h4 style={styles.methodName}>🏆 Earn Season Badges</h4>
                     <p style={styles.methodDesc}>
-                      Compete for the top spots on the leaderboard. Top 5 players share 
-                      99% of the prize pool every season!
+                      Compete for the top spots on the leaderboard. Top 50 players earn
+                      exclusive badges at season end!
                     </p>
                     <div style={styles.prizeDistribution}>
-                      <strong>Prize Split:</strong>
+                      <strong>Badge Rewards:</strong>
                       <div style={styles.distGrid}>
-                        <span>🥇 1st: 40%</span>
-                        <span>🥈 2nd: 25%</span>
-                        <span>🥉 3rd: 15%</span>
-                        <span>4th: 10%</span>
-                        <span>5th: 5%</span>
+                        <span>👑 #1: Champion</span>
+                        <span>🥇 #2-3: Elite</span>
+                        <span>🏆 #4-10: Master</span>
+                        <span>⭐ #11-25: Expert</span>
+                        <span>🎖️ #26-50: Veteran</span>
                       </div>
                     </div>
                   </div>
                 </div>
               </div>
 
-              {/* Quick Math */}
+              {/* Quick Start */}
               <div style={styles.mathBox}>
-                <h4 style={styles.mathTitle}>📈 Earnings Example</h4>
+                <h4 style={styles.mathTitle}>🚀 Quick Start Guide</h4>
                 <p style={styles.mathText}>
-                  If you win <strong>10 challenges</strong> per day:<br/>
-                  10 × {prizePerWin} UDC = <strong>{prizePerWin * 10} UDC/day</strong><br/>
-                  = { (prizePerWin * 10) } UDC per day potential!
+                  1. <strong>Create your agent</strong> - Pick a name and color<br/>
+                  2. <strong>Claim your first hex</strong> - Set a defense question<br/>
+                  3. <strong>Challenge others</strong> - Answer correctly to steal<br/>
+                  4. <strong>Aim for Top 50</strong> - Earn a season badge!
                 </p>
               </div>
             </>
@@ -183,7 +183,7 @@ export function HowToEarn({ isOpen, onClose }: HowToEarnProps) {
                   <ul style={styles.strategyList}>
                     <li><strong>Join early:</strong> Gangs with more territory attract more members</li>
                     <li><strong>Coordinate:</strong> Work with gang members to defend territory</li>
-                    <li><strong>Visual intimidation:</strong> Big gang logos scare off attackers</li>
+                    <li><strong>Visual intimidation:</strong> Big gang logos show strength</li>
                     <li><strong>Share intel:</strong> Tell allies about weak enemy hexes</li>
                   </ul>
                 </div>
@@ -197,26 +197,25 @@ export function HowToEarn({ isOpen, onClose }: HowToEarnProps) {
                 <h3 style={styles.sectionTitle}>❓ Frequently Asked Questions</h3>
 
                 <div style={styles.faqItem}>
-                  <h4 style={styles.faqQuestion}>How do I withdraw my earnings?</h4>
+                  <h4 style={styles.faqQuestion}>Is this really free?</h4>
                   <p style={styles.faqAnswer}>
-                    Contact the admin with your wallet address and desired amount. 
-                    Withdrawals are processed within 24 hours to your wallet.
+                    Yes! 100% free. No deposits, no costs, no hidden fees. Just play and have fun!
                   </p>
                 </div>
 
                 <div style={styles.faqItem}>
-                  <h4 style={styles.faqQuestion}>Is there a minimum deposit?</h4>
+                  <h4 style={styles.faqQuestion}>How do seasons work?</h4>
                   <p style={styles.faqAnswer}>
-                    No minimum! You can start with any amount. However, you need 
-                    enough balance to cover potential tournament entry fees (if enabled).
+                    Each season lasts for a set time. At the end, the top 50 players receive
+                    exclusive badges. Then a new season begins with a fresh leaderboard!
                   </p>
                 </div>
 
                 <div style={styles.faqItem}>
                   <h4 style={styles.faqQuestion}>How is the AI validation fair?</h4>
                   <p style={styles.faqAnswer}>
-                    We use GLM-4 AI with semantic similarity. It accepts answers that are 
-                    factually correct even if worded differently. Misspellings are tolerated 
+                    We use GLM-4 AI with semantic similarity. It accepts answers that are
+                    factually correct even if worded differently. Misspellings are tolerated
                     if the meaning is clear. The threshold is 70% similarity.
                   </p>
                 </div>
@@ -224,16 +223,16 @@ export function HowToEarn({ isOpen, onClose }: HowToEarnProps) {
                 <div style={styles.faqItem}>
                   <h4 style={styles.faqQuestion}>What if someone cheats?</h4>
                   <p style={styles.faqAnswer}>
-                    All challenges are logged. Suspicious activity (e.g., perfect answer rates) 
-                    triggers manual review. Cheaters lose all earnings and get banned.
+                    All challenges are logged. Suspicious activity triggers manual review.
+                    Cheaters get banned and their hexes reset.
                   </p>
                 </div>
 
                 <div style={styles.faqItem}>
-                  <h4 style={styles.faqQuestion}>Why only 1% fee?</h4>
+                  <h4 style={styles.faqQuestion}>Can I play with friends?</h4>
                   <p style={styles.faqAnswer}>
-                    We believe in rewarding players, not extracting value. The 1% covers 
-                    server costs and AI validation. Our goal is a sustainable player-first economy.
+                    Absolutely! Create or join a gang with friends. Coordinate attacks,
+                    defend together, and dominate the leaderboard as a team!
                   </p>
                 </div>
               </div>
@@ -244,7 +243,7 @@ export function HowToEarn({ isOpen, onClose }: HowToEarnProps) {
         {/* Footer */}
         <div style={styles.footer}>
           <span style={styles.footerText}>
-            💎 99% to Players • 1% Platform Fee • Play Smart, Earn More!
+            🎮 100% FREE • No Costs • Play for Glory!
           </span>
         </div>
       </div>
@@ -343,8 +342,8 @@ const styles: Record<string, React.CSSProperties> = {
     alignItems: 'center',
     gap: '20px',
     padding: '24px',
-    background: 'linear-gradient(135deg, rgba(255, 215, 0, 0.2) 0%, rgba(255, 153, 0, 0.2) 100%)',
-    border: '2px solid rgba(255, 215, 0, 0.5)',
+    background: 'linear-gradient(135deg, rgba(0, 255, 102, 0.2) 0%, rgba(0, 200, 100, 0.2) 100%)',
+    border: '2px solid rgba(0, 255, 102, 0.5)',
     borderRadius: '12px',
     marginBottom: '20px',
   },
@@ -356,21 +355,17 @@ const styles: Record<string, React.CSSProperties> = {
   },
   prizeLabel: {
     fontSize: '14px',
-    color: '#ffd700',
+    color: '#00ff66',
     fontWeight: 'bold',
     textTransform: 'uppercase',
     letterSpacing: '2px',
   },
   prizeAmount: {
-    fontSize: '42px',
+    fontSize: '32px',
     fontWeight: 'bold',
     color: '#00ff66',
     fontFamily: "'Orbitron', sans-serif",
     textShadow: '0 0 20px rgba(0, 255, 102, 0.5)',
-  },
-  prizeUsd: {
-    fontSize: '14px',
-    color: '#6a7a9a',
   },
   feeBox: {
     padding: '16px',
@@ -386,30 +381,25 @@ const styles: Record<string, React.CSSProperties> = {
     marginBottom: '12px',
     textAlign: 'center',
   },
-  feeGrid: {
+  rewardGrid: {
     display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: '20px',
+    justifyContent: 'space-around',
     marginBottom: '12px',
   },
-  feeItem: {
-    textAlign: 'center',
+  rewardItem: {
+    display: 'flex',
+    flexDirection: 'column',
+    alignItems: 'center',
+    gap: '6px',
   },
-  feeValue: {
+  rewardIcon: {
     fontSize: '28px',
-    fontWeight: 'bold',
-    color: '#00ff66',
-    fontFamily: "'Orbitron', sans-serif",
   },
-  feeLabel: {
+  rewardLabel: {
     fontSize: '11px',
     color: '#6a7a9a',
     textTransform: 'uppercase',
-  },
-  feeArrow: {
-    fontSize: '24px',
-    color: '#00ffff',
+    textAlign: 'center',
   },
   feeDesc: {
     fontSize: '12px',
@@ -482,7 +472,7 @@ const styles: Record<string, React.CSSProperties> = {
   },
   distGrid: {
     display: 'grid',
-    gridTemplateColumns: 'repeat(3, 1fr)',
+    gridTemplateColumns: 'repeat(2, 1fr)',
     gap: '6px',
     marginTop: '6px',
   },
