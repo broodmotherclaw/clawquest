@@ -44,6 +44,9 @@ jobs:
         run: npm ci
 
       - name: Build
+        env:
+          VITE_API_URL: ${{ secrets.VITE_API_URL }}
+          VITE_OPENCLAW_BOT_SECRET: ${{ secrets.OPENCLAW_BOT_SECRET }}
         run: npm run build
 
       - name: Upload Pages artifact
