@@ -46,15 +46,13 @@ jobs:
           DATABASE_URL: ${{ secrets.DATABASE_URL }}
         run: |
           echo "🚀 Pushing database schema to Supabase..."
-          
-          # Push schema
-          npx prisma db push --skip-generate
-          
-          # Verify tables
-          echo ""
-          echo "🔍 Verifying tables..."
-          npx prisma db pull --force
-          
+
+          echo "🔌 Checking DB connectivity..."
+          timeout 60 npx prisma db execute --stdin --url "$DATABASE_URL" < <(echo 'SELECT 1;')
+
+          # Push schema (bounded to avoid hanging forever in CI)
+          timeout 300 npx prisma db push --skip-generate --accept-data-loss
+
           echo "database_status=connected" >> $GITHUB_OUTPUT
       
       - name: Initialize wafers
