@@ -176,3 +176,11 @@ jobs:
           echo "✅ Backend deployed successfully!"
           echo "🌐 URL: $DEPLOYMENT_URL"
           echo "📊 Check deployment status at Vercel dashboard"
+
+      - name: Dump Vercel Function Logs On Failure
+        if: failure()
+        working-directory: ./backend
+        run: |
+          DEPLOYMENT_URL="${{ steps.url.outputs.deployment-url }}"
+          echo "🪵 Dumping Vercel logs for $DEPLOYMENT_URL"
+          vercel logs "$DEPLOYMENT_URL" --scope "$VERCEL_ORG_ID" --token=${{ secrets.VERCEL_OWNCLAW }} || true
