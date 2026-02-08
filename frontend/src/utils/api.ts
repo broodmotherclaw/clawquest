@@ -29,10 +29,13 @@ export interface HexHistory {
   id: string;
   hexId: string;
   fromAgentId?: string;
-  fromAgent?: { name: string };
+  fromAgent?: { id?: string; name: string; color?: string };
   toAgentId: string;
-  toAgent: { name: string };
+  toAgent: { id?: string; name: string; color?: string };
   actionType: 'CLAIM' | 'STEAL' | string;
+  questionSnapshot?: string;
+  submittedAnswer?: string;
+  challengeResult?: 'SUCCESS' | 'FAILED' | string;
   timestamp: string;
 }
 

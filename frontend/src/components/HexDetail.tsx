@@ -21,6 +21,7 @@ const CHALLENGE_FEE = 0.1; // UDC
 const WIN_BONUS = 0.05; // UDC
 
 export function HexDetail({ hex, currentAgent, onClose, onClaim, onChallenge }: HexDetailProps) {
+  const [hexDetails, setHexDetails] = useState<Hex | null>(null);
   const [question, setQuestion] = useState('');
   const [answer, setAnswer] = useState('');
   const [mode, setMode] = useState<'view' | 'claim' | 'challenge'>('view');
@@ -46,15 +47,19 @@ export function HexDetail({ hex, currentAgent, onClose, onClaim, onChallenge }: 
 
   // Load hex details including history
   useEffect(() => {
-    if (hex.id && hex.ownerId) {
+    setHexDetails(hex);
+    if (hex.id && /^[0-9a-fA-F-]{36}$/.test(hex.id) && hex.ownerId) {
       loadHexDetails();
+    } else {
+      setHistory([]);
     }
-  }, [hex.id]);
+  }, [hex.id, hex.ownerId]);
 
   const loadHexDetails = async () => {
     try {
       setLoading(true);
       const hexData = await clawQuestAPI.getHex(hex.id);
+      setHexDetails(hexData);
       if (hexData.history) {
         setHistory(hexData.history);
       }
@@ -65,8 +70,9 @@ export function HexDetail({ hex, currentAgent, onClose, onClaim, onChallenge }: 
     }
   };
 
-  const isOwned = !!hex.ownerId;
-  const isOwner = currentAgent?.id === hex.ownerId;
+  const activeHex = hexDetails || hex;
+  const isOwned = !!activeHex.ownerId;
+  const isOwner = currentAgent?.id === activeHex.ownerId;
   const canClaim = !isOwned && currentAgent;
   const canChallenge = isOwned && !isOwner && currentAgent;
 
@@ -79,7 +85,7 @@ export function HexDetail({ hex, currentAgent, onClose, onClaim, onChallenge }: 
   };
 
   // Format coordinates
-  const coordText = `Coordinates: Q${hex.q} R${hex.r} S${hex.s}`;
+  const coordText = `Coordinates: Q${activeHex.q} R${activeHex.r} S${activeHex.s}`;
   
   // Calculate hex value (0.1 UDC base prize)
   // 99% goes to player, 1% platform fee
@@ -119,16 +125,16 @@ export function HexDetail({ hex, currentAgent, onClose, onClaim, onChallenge }: 
                   <span 
                     style={{
                       ...styles.statusValue,
-                      color: hex.owner?.color || '#00ffff',
+                      color: activeHex.owner?.color || '#00ffff',
                     }}
                   >
-                    {hex.owner?.name || 'Unknown'}
+                    {activeHex.owner?.name || 'Unknown'}
                   </span>
                 </div>
-                {hex.gang && (
+                {activeHex.gang && (
                   <div style={styles.statusRow}>
                     <span style={styles.statusLabel}>Affiliated Gang:</span>
-                    <span style={styles.gangName}>{hex.gang.name}</span>
+                    <span style={styles.gangName}>{activeHex.gang.name}</span>
                   </div>
                 )}
                 {isOwner && (
@@ -152,7 +158,7 @@ export function HexDetail({ hex, currentAgent, onClose, onClaim, onChallenge }: 
               <div style={styles.defenseBox}>
                 <div style={styles.defenseRow}>
                   <span style={styles.defenseLabel}>Defense Question:</span>
-                  <p style={styles.questionText}>{hex.question || 'No defense configured'}</p>
+                  <p style={styles.questionText}>{activeHex.question || 'No defense configured'}</p>
                 </div>
 
                 {isOwner ? (
@@ -160,7 +166,7 @@ export function HexDetail({ hex, currentAgent, onClose, onClaim, onChallenge }: 
                     <span style={styles.defenseLabel}>Secret Answer (Classified):</span>
                     <div style={styles.answerContainer}>
                       {showAnswer ? (
-                        <p style={styles.answerText}>{hex.answer || 'No answer set'}</p>
+                        <p style={styles.answerText}>{activeHex.answer || 'No answer set'}</p>
                       ) : (
                         <button 
                           style={styles.revealBtn}
@@ -211,6 +217,21 @@ export function HexDetail({ hex, currentAgent, onClose, onClaim, onChallenge }: 
                         {entry.fromAgent && (
                           <div style={styles.historyFrom}>
                             seized from {entry.fromAgent.name}
+                          </div>
+                        )}
+                        {(entry.questionSnapshot || activeHex.question) && (
+                          <div style={styles.historyQA}>
+                            <strong>Q:</strong> {entry.questionSnapshot || activeHex.question}
+                          </div>
+                        )}
+                        {(entry.submittedAnswer || (isOwner ? activeHex.answer : '')) && (
+                          <div style={styles.historyQA}>
+                            <strong>A:</strong> {entry.submittedAnswer || activeHex.answer}
+                            {entry.challengeResult && (
+                              <span style={styles.historyResult}>
+                                {' '}({entry.challengeResult === 'SUCCESS' ? 'correct' : 'wrong'})
+                              </span>
+                            )}
                           </div>
                         )}
                         <div style={styles.historyTime}>
@@ -431,7 +452,7 @@ export function HexDetail({ hex, currentAgent, onClose, onClaim, onChallenge }: 
               <div style={styles.questionDisplay}>
                 <label style={styles.label}>Defense Question:</label>
                 <div style={styles.questionBox}>
-                  {hex.question || 'Intel unavailable...'}
+                  {activeHex.question || 'Intel unavailable...'}
                 </div>
               </div>
 
@@ -761,6 +782,17 @@ const styles: Record<string, React.CSSProperties> = {
     fontSize: '12px',
     color: '#6a7a9a',
     marginTop: '2px',
+  },
+  historyQA: {
+    fontSize: '12px',
+    color: '#9cb0d0',
+    marginTop: '4px',
+    lineHeight: 1.4,
+    wordBreak: 'break-word',
+  },
+  historyResult: {
+    color: '#6a7a9a',
+    fontStyle: 'italic',
   },
   historyTime: {
     fontSize: '11px',

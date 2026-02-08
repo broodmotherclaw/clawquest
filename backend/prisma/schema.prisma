@@ -10,21 +10,21 @@ datasource db {
 }
 
 model Agent {
-  id         String   @id @default(uuid())
-  name       String   @unique
-  color      String   // HSL format: "hsl(120, 70%, 50%)"
-  score      Int      @default(0)
-  gangId     String?
-  gang       Gang?    @relation(fields: [gangId], references: [id])
-  hexes      Hex[]
-  historyAsTo   HexHistory[] @relation("HexHistoryTo")
-  historyAsFrom HexHistory[] @relation("HexHistoryFrom")
-  agentWafers AgentWafer[]
-  ownedWafers Wafer[] @relation("WaferOwner")
-  wallet     Wallet?
-  deposits   Deposit[]
-  prizePayouts PrizePayout[]
-  createdAt  DateTime @default(now())
+  id            String        @id @default(uuid())
+  name          String        @unique
+  color         String // HSL format: "hsl(120, 70%, 50%)"
+  score         Int           @default(0)
+  gangId        String?
+  gang          Gang?         @relation(fields: [gangId], references: [id])
+  hexes         Hex[]
+  historyAsTo   HexHistory[]  @relation("HexHistoryTo")
+  historyAsFrom HexHistory[]  @relation("HexHistoryFrom")
+  agentWafers   AgentWafer[]
+  ownedWafers   Wafer[]       @relation("WaferOwner")
+  wallet        Wallet?
+  deposits      Deposit[]
+  prizePayouts  PrizePayout[]
+  createdAt     DateTime      @default(now())
 
   @@index([name])
   @@index([gangId])
@@ -33,29 +33,29 @@ model Agent {
 model Gang {
   id          String   @id @default(uuid())
   name        String   @unique
-  logoSvg     String   // SVG string
+  logoSvg     String // SVG string
   memberCount Int      @default(0)
   agents      Agent[]
-  hexes       Hex[] @relation("GangHexes")
+  hexes       Hex[]    @relation("GangHexes")
   createdAt   DateTime @default(now())
 
   @@index([name])
 }
 
 model Hex {
-  id            String      @id @default(uuid())
-  q             Int         // Axial coordinate
-  r             Int         // Axial coordinate
-  s             Int         // Calculated (q + r = 0)
-  ownerId       String
-  owner         Agent       @relation(fields: [ownerId], references: [id])
-  gangId        String?
-  gang          Gang?       @relation("GangHexes", fields: [gangId], references: [id])
-  question      String
-  answer        String
-  createdAt     DateTime    @default(now())
-  updatedAt     DateTime    @updatedAt
-  history       HexHistory[]
+  id        String       @id @default(uuid())
+  q         Int // Axial coordinate
+  r         Int // Axial coordinate
+  s         Int // Calculated (q + r = 0)
+  ownerId   String
+  owner     Agent        @relation(fields: [ownerId], references: [id])
+  gangId    String?
+  gang      Gang?        @relation("GangHexes", fields: [gangId], references: [id])
+  question  String
+  answer    String
+  createdAt DateTime     @default(now())
+  updatedAt DateTime     @updatedAt
+  history   HexHistory[]
 
   @@unique([q, r])
   @@index([ownerId])
@@ -63,29 +63,32 @@ model Hex {
 }
 
 model HexHistory {
-  id          String   @id @default(uuid())
-  hexId       String
-  hex         Hex      @relation(fields: [hexId], references: [id])
-  fromAgentId String?
-  fromAgent   Agent?   @relation("HexHistoryFrom", fields: [fromAgentId], references: [id])
-  toAgentId   String
-  toAgent     Agent    @relation("HexHistoryTo", fields: [toAgentId], references: [id])
-  actionType  String   // "CLAIM" or "STEAL"
-  timestamp   DateTime @default(now())
+  id               String   @id @default(uuid())
+  hexId            String
+  hex              Hex      @relation(fields: [hexId], references: [id])
+  fromAgentId      String?
+  fromAgent        Agent?   @relation("HexHistoryFrom", fields: [fromAgentId], references: [id])
+  toAgentId        String
+  toAgent          Agent    @relation("HexHistoryTo", fields: [toAgentId], references: [id])
+  actionType       String // "CLAIM" or "STEAL"
+  questionSnapshot String?
+  submittedAnswer  String?
+  challengeResult  String? // "SUCCESS" | "FAILED" | null
+  timestamp        DateTime @default(now())
 
   @@index([hexId])
   @@index([toAgentId])
 }
 
 model Wafer {
-  id          String      @id @default(uuid())
-  x           Int         // Grid X position (0-74)
-  y           Int         // Grid Y position (0-74)
-  value       Int         @default(0) // Chip value (0-10000)
-  ownerId    String?
-  owner       Agent?     @relation("WaferOwner", fields: [ownerId], references: [id])
+  id          String       @id @default(uuid())
+  x           Int // Grid X position (0-74)
+  y           Int // Grid Y position (0-74)
+  value       Int          @default(0) // Chip value (0-10000)
+  ownerId     String?
+  owner       Agent?       @relation("WaferOwner", fields: [ownerId], references: [id])
   collectedAt DateTime?
-  isActive    Boolean    @default(true)
+  isActive    Boolean      @default(true)
   agentWafers AgentWafer[]
 
   @@unique([x, y])
@@ -97,8 +100,8 @@ model AgentWafer {
   id          String   @id @default(uuid())
   agentId     String
   waferId     String
-  agent       Agent   @relation(fields: [agentId], references: [id])
-  wafer       Wafer   @relation(fields: [waferId], references: [id])
+  agent       Agent    @relation(fields: [agentId], references: [id])
+  wafer       Wafer    @relation(fields: [waferId], references: [id])
   collectedAt DateTime @default(now())
 
   @@unique([agentId, waferId])
@@ -111,7 +114,7 @@ model Wallet {
   id             String   @id @default(uuid())
   agentId        String   @unique
   agent          Agent    @relation(fields: [agentId], references: [id])
-  address        String   // USDC wallet address
+  address        String // USDC wallet address
   balance        Float    @default(0) // Current balance available for withdrawal
   totalDeposited Float    @default(0) // Total lifetime deposits
   totalWon       Float    @default(0) // Total won from prizes
@@ -123,13 +126,13 @@ model Wallet {
 
 // Deposit records
 model Deposit {
-  id        String   @id @default(uuid())
-  agentId   String
-  agent     Agent    @relation(fields: [agentId], references: [id])
-  amount    Float
-  txHash    String   @unique
-  status    String   // PENDING, CONFIRMED, FAILED
-  createdAt DateTime @default(now())
+  id          String    @id @default(uuid())
+  agentId     String
+  agent       Agent     @relation(fields: [agentId], references: [id])
+  amount      Float
+  txHash      String    @unique
+  status      String // PENDING, CONFIRMED, FAILED
+  createdAt   DateTime  @default(now())
   confirmedAt DateTime?
 
   @@index([agentId])
@@ -138,15 +141,15 @@ model Deposit {
 
 // Prize payouts to winners
 model PrizePayout {
-  id            String   @id @default(uuid())
+  id            String    @id @default(uuid())
   agentId       String
-  agent         Agent    @relation(fields: [agentId], references: [id])
+  agent         Agent     @relation(fields: [agentId], references: [id])
   amount        Float
-  reason        String   // e.g., "Hex challenge won", "Tournament 1st place"
+  reason        String // e.g., "Hex challenge won", "Tournament 1st place"
   walletAddress String
-  status        String   // PENDING, COMPLETED, FAILED
+  status        String // PENDING, COMPLETED, FAILED
   txHash        String?
-  createdAt     DateTime @default(now())
+  createdAt     DateTime  @default(now())
   processedAt   DateTime?
 
   @@index([agentId])

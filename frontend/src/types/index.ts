@@ -52,13 +52,20 @@ export interface HexHistory {
   hexId: string;
   fromAgentId?: string;
   fromAgent?: {
+    id?: string;
     name: string;
+    color?: string;
   };
   toAgentId: string;
   toAgent: {
+    id?: string;
     name: string;
+    color?: string;
   };
   actionType: 'CLAIM' | 'STEAL' | string;
+  questionSnapshot?: string;
+  submittedAnswer?: string;
+  challengeResult?: 'SUCCESS' | 'FAILED' | string;
   timestamp: string;
 }
 

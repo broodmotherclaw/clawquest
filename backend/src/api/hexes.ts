@@ -9,6 +9,51 @@ import prizePoolService from '../services/prizePool';
 const router = Router();
 const prisma = new PrismaClient();
 
+type HistoryDetailsRow = {
+  id: string;
+  questionSnapshot: string | null;
+  submittedAnswer: string | null;
+  challengeResult: string | null;
+};
+
+async function loadHistoryDetails(hexId: string): Promise<Map<string, HistoryDetailsRow>> {
+  try {
+    const rows = await prisma.$queryRaw<HistoryDetailsRow[]>`
+      SELECT "id", "questionSnapshot", "submittedAnswer", "challengeResult"
+      FROM "HexHistory"
+      WHERE "hexId" = ${hexId}
+      ORDER BY "timestamp" DESC
+      LIMIT 20
+    `;
+    return new Map(rows.map((row) => [row.id, row]));
+  } catch {
+    // Backward compatibility: if columns are not migrated yet, continue without details.
+    return new Map();
+  }
+}
+
+async function saveHistoryDetails(
+  historyId: string,
+  details: {
+    questionSnapshot?: string | null;
+    submittedAnswer?: string | null;
+    challengeResult?: string | null;
+  }
+): Promise<void> {
+  try {
+    await prisma.$executeRaw`
+      UPDATE "HexHistory"
+      SET
+        "questionSnapshot" = ${details.questionSnapshot ?? null},
+        "submittedAnswer" = ${details.submittedAnswer ?? null},
+        "challengeResult" = ${details.challengeResult ?? null}
+      WHERE "id" = ${historyId}
+    `;
+  } catch {
+    // Backward compatibility: if columns are not migrated yet, keep request successful.
+  }
+}
+
 // Content validation helpers
 const MAX_QUESTION_LENGTH = 200;
 const MAX_ANSWER_LENGTH = 100;
@@ -121,7 +166,7 @@ router.get('/', async (req: Request, res: Response) => {
 });
 
 // GET /api/hexes/:id - Get hex by ID
-router.get('/:id', async (req: Request, res: Response) => {
+router.get('/:id([0-9a-fA-F-]{36})', async (req: Request, res: Response) => {
   try {
     const { id } = req.params;
 
@@ -150,12 +195,16 @@ router.get('/:id', async (req: Request, res: Response) => {
           include: {
             fromAgent: {
               select: {
-                name: true
+                id: true,
+                name: true,
+                color: true
               }
             },
             toAgent: {
               select: {
-                name: true
+                id: true,
+                name: true,
+                color: true
               }
             }
           }
@@ -170,9 +219,24 @@ router.get('/:id', async (req: Request, res: Response) => {
       });
     }
 
+    const historyDetails = await loadHistoryDetails(id);
+    const enrichedHex = {
+      ...hex,
+      history: hex.history.map((entry) => ({
+        ...entry,
+        questionSnapshot: historyDetails.get(entry.id)?.questionSnapshot || hex.question,
+        submittedAnswer: historyDetails.get(entry.id)?.submittedAnswer || undefined,
+        challengeResult: historyDetails.get(entry.id)?.challengeResult || (
+          entry.actionType === 'STEAL'
+            ? (entry.fromAgentId ? 'SUCCESS' : 'FAILED')
+            : undefined
+        )
+      }))
+    };
+
     res.json({
       success: true,
-      hex
+      hex: enrichedHex
     });
   } catch (error) {
     console.error('Get hex error:', error);
@@ -329,13 +393,14 @@ router.post('/claim', async (req: Request, res: Response) => {
     });
 
     // Create history entry
-    await prisma.hexHistory.create({
+    const historyEntry = await prisma.hexHistory.create({
       data: {
         hexId: hex.id,
         toAgentId: agentId,
         actionType: 'CLAIM'
       }
     });
+    await saveHistoryDetails(historyEntry.id, { questionSnapshot: question });
 
     // Emit socket event
     emitHexUpdate('hex-claimed', {
@@ -499,13 +564,18 @@ router.post('/challenge', async (req: Request, res: Response) => {
       ]);
 
       // Create history entry
-      await prisma.hexHistory.create({
+      const historyEntry = await prisma.hexHistory.create({
         data: {
           hexId,
           fromAgentId: hex.ownerId,
           toAgentId: agentId,
           actionType: 'STEAL'
         }
+      });
+      await saveHistoryDetails(historyEntry.id, {
+        questionSnapshot: hex.question,
+        submittedAnswer: answer,
+        challengeResult: 'SUCCESS'
       });
 
       // Emit socket event
@@ -540,12 +610,17 @@ router.post('/challenge', async (req: Request, res: Response) => {
         }
       });
 
-      await prisma.hexHistory.create({
+      const historyEntry = await prisma.hexHistory.create({
         data: {
           hexId,
           toAgentId: agentId,
           actionType: 'STEAL'
         }
+      });
+      await saveHistoryDetails(historyEntry.id, {
+        questionSnapshot: hex.question,
+        submittedAnswer: answer,
+        challengeResult: 'FAILED'
       });
 
       res.json({

@@ -66,6 +66,9 @@ model HexHistory {
   toAgentId   String
   toAgent     Agent   @relation("HexHistoryTo", fields: [toAgentId], references: [id])
   actionType  String
+  questionSnapshot String?
+  submittedAnswer  String?
+  challengeResult  String?
   timestamp   DateTime @default(now())
 
   @@index([hexId])
