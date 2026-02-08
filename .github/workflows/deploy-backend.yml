@@ -105,7 +105,7 @@ jobs:
           echo "🧪 Testing deployment at $DEPLOYMENT_URL..."
 
           BYPASS_SECRET="${{ secrets.VERCEL_AUTOMATION_BYPASS_SECRET }}"
-          CURL_ARGS=(-s -o /dev/null -w "%{http_code}")
+          CURL_ARGS=(-s -L --max-redirs 10 -o /dev/null -w "%{http_code}")
           if [ -n "$BYPASS_SECRET" ]; then
             echo "🔐 Using Vercel protection bypass header for health check"
             CURL_ARGS+=(-H "x-vercel-protection-bypass: $BYPASS_SECRET" -H "x-vercel-set-bypass-cookie: true")
