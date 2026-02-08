@@ -103,15 +103,30 @@ jobs:
         run: |
           DEPLOYMENT_URL="${{ steps.url.outputs.deployment-url }}"
           echo "🧪 Testing deployment at $DEPLOYMENT_URL..."
-          
-          # Health check
-          HTTP_STATUS=$(curl -s -o /dev/null -w "%{http_code}" "$DEPLOYMENT_URL/api/health")
-          
-          if [ "$HTTP_STATUS" = "200" ]; then
-            echo "✅ Health check passed (HTTP $HTTP_STATUS)"
-          else
+
+          BYPASS_SECRET="${{ secrets.VERCEL_AUTOMATION_BYPASS_SECRET }}"
+          CURL_ARGS=(-s -o /dev/null -w "%{http_code}")
+          if [ -n "$BYPASS_SECRET" ]; then
+            echo "🔐 Using Vercel protection bypass header for health check"
+            CURL_ARGS+=(-H "x-vercel-protection-bypass: $BYPASS_SECRET" -H "x-vercel-set-bypass-cookie: true")
+          fi
+
+          HTTP_STATUS=""
+          for attempt in $(seq 1 12); do
+            HTTP_STATUS=$(curl "${CURL_ARGS[@]}" "$DEPLOYMENT_URL/api/health")
+            if [ "$HTTP_STATUS" = "200" ]; then
+              echo "✅ Health check passed (HTTP $HTTP_STATUS)"
+              break
+            fi
+            echo "⌛ Attempt $attempt/12 returned HTTP $HTTP_STATUS, retrying..."
+            sleep 10
+          done
+
+          if [ "$HTTP_STATUS" != "200" ]; then
             echo "❌ Health check failed (HTTP $HTTP_STATUS)"
-            echo "⚠️  Deployment might not be ready yet"
+            if [ "$HTTP_STATUS" = "401" ]; then
+              echo "⚠️  401 indicates Vercel Deployment Protection. Set secret VERCEL_AUTOMATION_BYPASS_SECRET or disable protection for production."
+            fi
             exit 1
           fi
       
