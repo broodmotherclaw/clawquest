@@ -8,8 +8,8 @@ on:
 
 env:
   NODE_VERSION: '18'
-  VERCEL_ORG_ID: 'team_broodmotherclaw'
-  VERCEL_PROJECT_ID: 'prj_L8RxWLrglf3vy5w2bgy05QkWuyf0'
+  VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
+  VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
 
 jobs:
   deploy:
@@ -40,31 +40,48 @@ jobs:
         working-directory: ./backend
         run: |
           echo "🔧 Pulling Vercel Environment..."
-          vercel env pull --token=${{ secrets.VERCEL_OWNCLAW }} --yes --environment=production
+          rm -rf .vercel
+          test -n "$VERCEL_ORG_ID"
+          test -n "$VERCEL_PROJECT_ID"
+          vercel link --yes --scope "$VERCEL_ORG_ID" --project "$VERCEL_PROJECT_ID" --token=${{ secrets.VERCEL_OWNCLAW }}
+          vercel env pull --token=${{ secrets.VERCEL_OWNCLAW }} --scope "$VERCEL_ORG_ID" --yes --environment=production
           
       - name: Deploy to Vercel
         id: deploy
         working-directory: ./backend
         run: |
           echo "🚀 Deploying to Vercel..."
-          vercel --prod --token=${{ secrets.VERCEL_OWNCLAW }} --confirm
+          vercel --prod --scope "$VERCEL_ORG_ID" --token=${{ secrets.VERCEL_OWNCLAW }} --confirm
       
       - name: Get deployment URL
         id: url
         working-directory: ./backend
         run: |
-          DEPLOYMENT_URL=$(vercel ls --token=${{ secrets.VERCEL_OWNCLAW }} --prod --yes 2>/dev/null | grep -oP '(https://[^ ]+\.vercel\.app[^ ]*)' | head -1)
+          DEPLOYMENT_URL=$(vercel ls --scope "$VERCEL_ORG_ID" --token=${{ secrets.VERCEL_OWNCLAW }} --prod --yes 2>/dev/null | grep -oP '(https://[^ ]+\.vercel\.app[^ ]*)' | head -1)
           echo "deployment-url=$DEPLOYMENT_URL" >> $GITHUB_OUTPUT
       
       - name: Update environment variables
         working-directory: ./backend
         run: |
           echo "🔧 Updating environment variables..."
-          
-          vercel env add DATABASE_URL "${{ secrets.SUPABASE_DB_URL }}" --token=${{ secrets.VERCEL_OWNCLAW }} --prod --yes
-          vercel env add SUPABASE_URL "${{ secrets.SUPABASE_URL }}" --token=${{ secrets.VERCEL_OWNCLAW }} --prod --yes
-          vercel env add SUPABASE_ANON_KEY "${{ secrets.SUPABASE_ANON_KEY }}" --token=${{ secrets.VERCEL_OWNCLAW }} --prod --yes
-          vercel env add OPENCLAW_BOT_SECRET "${{ secrets.OPENCLAW_BOT_SECRET }}" --token=${{ secrets.VERCEL_OWNCLAW }} --prod --yes
+
+          test -n "${{ secrets.DATABASE_URL }}"
+          test -n "${{ secrets.SUPABASE_URL }}"
+          test -n "${{ secrets.SUPABASE_ANON_KEY }}"
+          test -n "${{ secrets.OPENCLAW_BOT_SECRET }}"
+
+          sync_vercel_env() {
+            local name="$1"
+            local value="$2"
+            vercel env rm "$name" production --scope "$VERCEL_ORG_ID" --token=${{ secrets.VERCEL_OWNCLAW }} --yes >/dev/null 2>&1 || true
+            printf '%s' "$value" | vercel env add "$name" production --scope "$VERCEL_ORG_ID" --token=${{ secrets.VERCEL_OWNCLAW }}
+          }
+
+          sync_vercel_env "DATABASE_URL" "${{ secrets.DATABASE_URL }}"
+          sync_vercel_env "SUPABASE_URL" "${{ secrets.SUPABASE_URL }}"
+          sync_vercel_env "SUPABASE_ANON_KEY" "${{ secrets.SUPABASE_ANON_KEY }}"
+          sync_vercel_env "OPENCLAW_BOT_SECRET" "${{ secrets.OPENCLAW_BOT_SECRET }}"
+          sync_vercel_env "SHARED_SECRET" "${{ secrets.OPENCLAW_BOT_SECRET }}"
       
       - name: Wait for deployment
         working-directory: ./backend

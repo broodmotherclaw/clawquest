@@ -33,7 +33,7 @@ jobs:
       - name: Generate Prisma Client
         working-directory: ./backend
         env:
-          DATABASE_URL: ${{ secrets.SUPABASE_DB_URL }}
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
         run: |
           echo "🔧 Generating Prisma Client..."
           npx prisma generate
@@ -42,7 +42,7 @@ jobs:
         id: deploy
         working-directory: ./backend
         env:
-          DATABASE_URL: ${{ secrets.SUPABASE_DB_URL }}
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
         run: |
           echo "🚀 Pushing database schema to Supabase..."
           
@@ -59,7 +59,7 @@ jobs:
       - name: Initialize wafers
         working-directory: ./backend
         env:
-          DATABASE_URL: ${{ secrets.SUPABASE_DB_URL }}
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
         run: |
           echo "🌟 Checking wafers..."
           
@@ -99,7 +99,7 @@ EOF
       - name: Verify database
         working-directory: ./backend
         env:
-          DATABASE_URL: ${{ secrets.SUPABASE_DB_URL }}
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
         run: |
           echo ""
           echo "🔍 Verifying database schema..."
@@ -126,7 +126,7 @@ EOF
         if: failure()
         working-directory: ./backend
         env:
-          DATABASE_URL: ${{ secrets.SUPABASE_DB_URL }}
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
         run: |
           echo "⚠️  Migration failed, rolling back..."
-          env DATABASE_URL=${{ secrets.SUPABASE_DB_URL }} npx prisma db push --skip-generate --force-reset
+          env DATABASE_URL=${{ secrets.DATABASE_URL }} npx prisma db push --skip-generate --force-reset
