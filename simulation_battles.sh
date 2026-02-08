@@ -33,7 +33,7 @@ echo "⚔️  MOVE 1: Alpha-One claims NEW neutral hex at (-4, 5)..."
 curl -s -X POST "${BASE_URL}/hexes/claim" \
   -H "Content-Type: application/json" \
   -H "X-OpenClaw-Bot: true" \
-  -H "X-OpenClaw-Bot-Secret: openclaw-secret-key-2024" \
+  -H "X-OpenClaw-Bot-Secret: YOUR_OPENCLAW_BOT_SECRET" \
   -d "{\"agentId\": \"${ALPHA_ONE}\", \"q\": -4, \"r\": 5, \"question\": \"What is the powerhouse of the cell?\", \"answer\": \"Mitochondria\"}" | grep -o '"success":[a-z]*' | head -1
 echo ""
 
@@ -42,7 +42,7 @@ echo "⚔️  MOVE 2: 🔥 BATTLE! Gamma-Three challenges Alpha-One's hex (Physi
 curl -s -X POST "${BASE_URL}/hexes/challenge" \
   -H "Content-Type: application/json" \
   -H "X-OpenClaw-Bot: true" \
-  -H "X-OpenClaw-Bot-Secret: openclaw-secret-key-2024" \
+  -H "X-OpenClaw-Bot-Secret: YOUR_OPENCLAW_BOT_SECRET" \
   -d "{\"agentId\": \"${GAMMA_THREE}\", \"hexId\": \"${HEX_ALPHA_3_0}\", \"answer\": \"300000000 m/s\"}" | grep -o '"success":[a-z]*' | head -1
 echo " (FAILED as expected - wrong answer)"
 echo ""
@@ -52,7 +52,7 @@ echo "⚔️  MOVE 3: Beta-Two claims NEW neutral hex at (-7, 4)..."
 curl -s -X POST "${BASE_URL}/hexes/claim" \
   -H "Content-Type: application/json" \
   -H "X-OpenClaw-Bot: true" \
-  -H "X-OpenClaw-Bot-Secret: openclaw-secret-key-2024" \
+  -H "X-OpenClaw-Bot-Secret: YOUR_OPENCLAW_BOT_SECRET" \
   -d "{\"agentId\": \"${BETA_TWO}\", \"q\": -7, \"r\": 4, \"question\": \"What is the chemical formula for glucose?\", \"answer\": \"C6H12O6\"}" | grep -o '"success":[a-z]*' | head -1
 echo ""
 
@@ -61,7 +61,7 @@ echo "⚔️  MOVE 4: 💀 Delta-Four tries to steal from Zeta-Six but gives WRO
 curl -s -X POST "${BASE_URL}/hexes/challenge" \
   -H "Content-Type: application/json" \
   -H "X-OpenClaw-Bot: true" \
-  -H "X-OpenClaw-Bot-Secret: openclaw-secret-key-2024" \
+  -H "X-OpenClaw-Bot-Secret: YOUR_OPENCLAW_BOT_SECRET" \
   -d "{\"agentId\": \"${DELTA_FOUR}\", \"hexId\": \"${HEX_ZETA_0_5}\", \"answer\": \"Kilimanjaro\"}" | grep -o '"success":[a-z]*' | head -1
 echo " (FAILED - wrong mountain)"
 echo ""
@@ -71,7 +71,7 @@ echo "⚔️  MOVE 5: Epsilon-Five claims NEW hex at (5, -5) with Biology..."
 curl -s -X POST "${BASE_URL}/hexes/claim" \
   -H "Content-Type: application/json" \
   -H "X-OpenClaw-Bot: true" \
-  -H "X-OpenClaw-Bot-Secret: openclaw-secret-key-2024" \
+  -H "X-OpenClaw-Bot-Secret: YOUR_OPENCLAW_BOT_SECRET" \
   -d "{\"agentId\": \"${EPSILON_FIVE}\", \"q\": 5, \"r\": -5, \"question\": \"What is the largest organ in the human body?\", \"answer\": \"Skin\"}" | grep -o '"success":[a-z]*' | head -1
 echo ""
 
@@ -80,7 +80,7 @@ echo "⚔️  MOVE 6: 🔥🔥 DRAMATIC BATTLE! Zeta-Six STEALS from Gamma-Three
 curl -s -X POST "${BASE_URL}/hexes/challenge" \
   -H "Content-Type: application/json" \
   -H "X-OpenClaw-Bot: true" \
-  -H "X-OpenClaw-Bot-Secret: openclaw-secret-key-2024" \
+  -H "X-OpenClaw-Bot-Secret: YOUR_OPENCLAW_BOT_SECRET" \
   -d "{\"agentId\": \"${ZETA_SIX}\", \"hexId\": \"${HEX_GAMMA_0_m3}\", \"answer\": \"4\"}" | grep -o '"success":[a-z]*' | head -1
 echo " (SUCCESS - Zeta stole the hex!)"
 echo ""
@@ -90,7 +90,7 @@ echo "⚔️  MOVE 7: Theta-Eight claims hex at (8, -4) with Art trivia..."
 curl -s -X POST "${BASE_URL}/hexes/claim" \
   -H "Content-Type: application/json" \
   -H "X-OpenClaw-Bot: true" \
-  -H "X-OpenClaw-Bot-Secret: openclaw-secret-key-2024" \
+  -H "X-OpenClaw-Bot-Secret: YOUR_OPENCLAW_BOT_SECRET" \
   -d "{\"agentId\": \"${THETA_EIGHT}\", \"q\": 8, \"r\": -4, \"question\": \"Who painted The Starry Night?\", \"answer\": \"Vincent van Gogh\"}" | grep -o '"success":[a-z]*' | head -1
 echo ""
 
@@ -99,7 +99,7 @@ echo "⚔️  MOVE 8: 🧪 Gamma-Three challenges Beta-Two on Astronomy (Jupiter
 curl -s -X POST "${BASE_URL}/hexes/challenge" \
   -H "Content-Type: application/json" \
   -H "X-OpenClaw-Bot: true" \
-  -H "X-OpenClaw-Bot-Secret: openclaw-secret-key-2024" \
+  -H "X-OpenClaw-Bot-Secret: YOUR_OPENCLAW_BOT_SECRET" \
   -d "{\"agentId\": \"${GAMMA_THREE}\", \"hexId\": \"${HEX_BETA_m4_0}\", \"answer\": \"Jupiter\"}" | grep -o '"success":[a-z]*' | head -1
 echo " (SUCCESS - Gamma stole the hex!)"
 echo ""
@@ -109,7 +109,7 @@ echo "⚔️  MOVE 9: Iota-Nine claims hex at (-6, -4) with History..."
 curl -s -X POST "${BASE_URL}/hexes/claim" \
   -H "Content-Type: application/json" \
   -H "X-OpenClaw-Bot: true" \
-  -H "X-OpenClaw-Bot-Secret: openclaw-secret-key-2024" \
+  -H "X-OpenClaw-Bot-Secret: YOUR_OPENCLAW_BOT_SECRET" \
   -d "{\"agentId\": \"${IOTA_NINE}\", \"q\": -6, \"r\": -4, \"question\": \"Who was the first president of the United States?\", \"answer\": \"George Washington\"}" | grep -o '"success":[a-z]*' | head -1
 echo ""
 
@@ -118,7 +118,7 @@ echo "⚔️  MOVE 10: 💀 Kimi-AI-Agent attempts to steal from Delta-Four but 
 curl -s -X POST "${BASE_URL}/hexes/challenge" \
   -H "Content-Type: application/json" \
   -H "X-OpenClaw-Bot: true" \
-  -H "X-OpenClaw-Bot-Secret: openclaw-secret-key-2024" \
+  -H "X-OpenClaw-Bot-Secret: YOUR_OPENCLAW_BOT_SECRET" \
   -d "{\"agentId\": \"${KIMI}\", \"hexId\": \"${HEX_DELTA_5_0}\", \"answer\": \"Kyoto\"}" | grep -o '"success":[a-z]*' | head -1
 echo " (FAILED - wrong capital)"
 echo ""
@@ -128,7 +128,7 @@ echo "⚔️  MOVE 11: 🔥 REVENGE! Alpha-One steals from Gamma-Three on Geogra
 curl -s -X POST "${BASE_URL}/hexes/challenge" \
   -H "Content-Type: application/json" \
   -H "X-OpenClaw-Bot: true" \
-  -H "X-OpenClaw-Bot-Secret: openclaw-secret-key-2024" \
+  -H "X-OpenClaw-Bot-Secret: YOUR_OPENCLAW_BOT_SECRET" \
   -d "{\"agentId\": \"${ALPHA_ONE}\", \"hexId\": \"${HEX_GAMMA_m2_0}\", \"answer\": \"Paris\"}" | grep -o '"success":[a-z]*' | head -1
 echo " (SUCCESS - Alpha stole the hex!)"
 echo ""
@@ -138,7 +138,7 @@ echo "⚔️  MOVE 12: Delta-Four claims NEW hex at (6, 4)..."
 curl -s -X POST "${BASE_URL}/hexes/claim" \
   -H "Content-Type: application/json" \
   -H "X-OpenClaw-Bot: true" \
-  -H "X-OpenClaw-Bot-Secret: openclaw-secret-key-2024" \
+  -H "X-OpenClaw-Bot-Secret: YOUR_OPENCLAW_BOT_SECRET" \
   -d "{\"agentId\": \"${DELTA_FOUR}\", \"q\": 6, \"r\": 4, \"question\": \"What is the smallest continent?\", \"answer\": \"Australia\"}" | grep -o '"success":[a-z]*' | head -1
 echo ""
 
@@ -147,7 +147,7 @@ echo "⚔️  MOVE 13: 💀 Beta-Two fails to steal from Zeta-Six - Wrong mounta
 curl -s -X POST "${BASE_URL}/hexes/challenge" \
   -H "Content-Type: application/json" \
   -H "X-OpenClaw-Bot: true" \
-  -H "X-OpenClaw-Bot-Secret: openclaw-secret-key-2024" \
+  -H "X-OpenClaw-Bot-Secret: YOUR_OPENCLAW_BOT_SECRET" \
   -d "{\"agentId\": \"${BETA_TWO}\", \"hexId\": \"${HEX_ZETA_0_5}\", \"answer\": \"K2\"}" | grep -o '"success":[a-z]*' | head -1
 echo " (FAILED - wrong answer)"
 echo ""
@@ -157,7 +157,7 @@ echo "⚔️  MOVE 14: 🔥 Gamma-Three steals from Epsilon-Five! (Geography - P
 curl -s -X POST "${BASE_URL}/hexes/challenge" \
   -H "Content-Type: application/json" \
   -H "X-OpenClaw-Bot: true" \
-  -H "X-OpenClaw-Bot-Secret: openclaw-secret-key-2024" \
+  -H "X-OpenClaw-Bot-Secret: YOUR_OPENCLAW_BOT_SECRET" \
   -d "{\"agentId\": \"${GAMMA_THREE}\", \"hexId\": \"${HEX_EPSILON_m5_0}\", \"answer\": \"Pacific\"}" | grep -o '"success":[a-z]*' | head -1
 echo " (SUCCESS - Gamma stole the hex!)"
 echo ""
@@ -167,7 +167,7 @@ echo "⚔️  MOVE 15: Zeta-Six claims hex at (4, -6) with Literature..."
 curl -s -X POST "${BASE_URL}/hexes/claim" \
   -H "Content-Type: application/json" \
   -H "X-OpenClaw-Bot: true" \
-  -H "X-OpenClaw-Bot-Secret: openclaw-secret-key-2024" \
+  -H "X-OpenClaw-Bot-Secret: YOUR_OPENCLAW_BOT_SECRET" \
   -d "{\"agentId\": \"${ZETA_SIX}\", \"q\": 4, \"r\": -6, \"question\": \"Who wrote 'To Kill a Mockingbird'?\", \"answer\": \"Harper Lee\"}" | grep -o '"success":[a-z]*' | head -1
 echo ""
 

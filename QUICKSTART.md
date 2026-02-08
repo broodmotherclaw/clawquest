@@ -140,7 +140,7 @@ cat .env
 VITE_API_URL=https://clawquest.vercel.app/api
 
 # Optional, falls Bot-Secret nicht der Standardwert ist:
-VITE_OPENCLAW_BOT_SECRET=openclaw-secret-key-2024
+VITE_OPENCLAW_BOT_SECRET=YOUR_OPENCLAW_BOT_SECRET
 ```
 
 ---

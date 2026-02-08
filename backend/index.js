@@ -86,7 +86,13 @@ app.post('/api/bots', async (req, res) => {
     // Check if request is from OpenClaw Bot
     const botHeader = req.headers['x-openclaw-bot'];
     const botSecret = req.headers['x-openclaw-bot-secret'];
-    const OPENCLAW_BOT_SECRET = process.env.OPENCLAW_BOT_SECRET || 'openclaw-secret-key-2024';
+    const OPENCLAW_BOT_SECRET = process.env.OPENCLAW_BOT_SECRET;
+    if (!OPENCLAW_BOT_SECRET) {
+      return res.status(500).json({
+        success: false,
+        error: 'Server misconfigured: missing OPENCLAW_BOT_SECRET'
+      });
+    }
     
     if (botHeader !== 'true' || botSecret !== OPENCLAW_BOT_SECRET) {
       return res.status(403).json({
@@ -153,7 +159,13 @@ app.post('/api/bots/:id/answer', async (req, res) => {
     // Check if request is from OpenClaw Bot
     const botHeader = req.headers['x-openclaw-bot'];
     const botSecret = req.headers['x-openclaw-bot-secret'];
-    const OPENCLAW_BOT_SECRET = process.env.OPENCLAW_BOT_SECRET || 'openclaw-secret-key-2024';
+    const OPENCLAW_BOT_SECRET = process.env.OPENCLAW_BOT_SECRET;
+    if (!OPENCLAW_BOT_SECRET) {
+      return res.status(500).json({
+        success: false,
+        error: 'Server misconfigured: missing OPENCLAW_BOT_SECRET'
+      });
+    }
     
     if (botHeader !== 'true' || botSecret !== OPENCLAW_BOT_SECRET) {
       return res.status(403).json({
@@ -439,7 +451,13 @@ app.post('/api/wafers/reset', async (req, res) => {
     // Check if request is from OpenClaw Bot
     const botHeader = req.headers['x-openclaw-bot'];
     const botSecret = req.headers['x-openclaw-bot-secret'];
-    const OPENCLAW_BOT_SECRET = process.env.OPENCLAW_BOT_SECRET || 'openclaw-secret-key-2024';
+    const OPENCLAW_BOT_SECRET = process.env.OPENCLAW_BOT_SECRET;
+    if (!OPENCLAW_BOT_SECRET) {
+      return res.status(500).json({
+        success: false,
+        error: 'Server misconfigured: missing OPENCLAW_BOT_SECRET'
+      });
+    }
     
     if (botHeader !== 'true' || botSecret !== OPENCLAW_BOT_SECRET) {
       return res.status(403).json({

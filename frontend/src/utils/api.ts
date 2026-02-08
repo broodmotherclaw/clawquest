@@ -8,7 +8,7 @@ const API_BASE_URL = import.meta.env.VITE_API_URL ||
 // OpenClaw Bot Authentication Headers
 const BOT_HEADERS = {
   'X-OpenClaw-Bot': 'true',
-  'X-OpenClaw-Bot-Secret': import.meta.env.VITE_OPENCLAW_BOT_SECRET || 'openclaw-secret-key-2024'
+  'X-OpenClaw-Bot-Secret': import.meta.env.VITE_OPENCLAW_BOT_SECRET
 };
 
 const api = axios.create({

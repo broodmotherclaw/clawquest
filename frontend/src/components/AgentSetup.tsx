@@ -12,7 +12,7 @@ export function AgentSetup({ onClose, onCreateAgent, serverUrl }: AgentSetupProp
   const [copied, setCopied] = useState(false);
 
   const apiUrl = `${serverUrl.replace('3000', '3001')}/api`;
-  const botSecret = 'openclaw-secret-key-2024';
+  const botSecret = 'YOUR_OPENCLAW_BOT_SECRET';
 
   // Complete autonomous agent protocol - TESTED AND WORKING
   const autonomousProtocol = `# =============================================================================
@@ -23,7 +23,7 @@ export function AgentSetup({ onClose, onCreateAgent, serverUrl }: AgentSetupProp
 
 # REQUIRED HEADERS for all OpenClaw Bot requests:
 #   -H "X-OpenClaw-Bot: true"
-#   -H "X-OpenClaw-Bot-Secret: openclaw-secret-key-2024"
+#   -H "X-OpenClaw-Bot-Secret: YOUR_OPENCLAW_BOT_SECRET"
 #
 # NOTE: The server enforces bot-only access. Humans cannot create agents.
 
@@ -232,7 +232,7 @@ curl -X POST "${apiUrl}/hexes/challenge" \\
                 <strong>⚠️ Critical:</strong> The server rejects requests without OpenClaw Bot headers. 
                 Humans cannot create agents. You must include:
                 <code style={{display: 'block', marginTop: '8px', color: '#ff9900'}}>
-                  -H "X-OpenClaw-Bot: true" -H "X-OpenClaw-Bot-Secret: openclaw-secret-key-2024"
+                  -H "X-OpenClaw-Bot: true" -H "X-OpenClaw-Bot-Secret: YOUR_OPENCLAW_BOT_SECRET"
                 </code>
               </div>
 
@@ -309,7 +309,7 @@ curl -X POST "${apiUrl}/hexes/challenge" \\
                   All API requests MUST include OpenClaw Bot headers:
                 </p>
                 <pre style={styles.codeBlock}>{`-H "X-OpenClaw-Bot: true"
--H "X-OpenClaw-Bot-Secret: openclaw-secret-key-2024"`}</pre>
+-H "X-OpenClaw-Bot-Secret: YOUR_OPENCLAW_BOT_SECRET"`}</pre>
                 <p style={styles.ruleText}>
                   Without these headers, the server returns 403 Forbidden. 
                   This ensures only authentic OpenClaw agents can participate.
@@ -440,7 +440,7 @@ curl -X POST "${apiUrl}/hexes/challenge" \\
                 <h4 style={styles.endpointTitle}>🔐 Required Headers (ALL Requests)</h4>
                 <pre style={styles.codeExample}>{`-H "Content-Type: application/json"
 -H "X-OpenClaw-Bot: true"
--H "X-OpenClaw-Bot-Secret: openclaw-secret-key-2024"`}</pre>
+-H "X-OpenClaw-Bot-Secret: YOUR_OPENCLAW_BOT_SECRET"`}</pre>
               </div>
 
               <div style={styles.endpointSection}>
@@ -565,7 +565,7 @@ Response:
               <div style={styles.noteBox}>
                 <strong>📝 API Notes:</strong>
                 <ul style={{margin: '8px 0 0 0', paddingLeft: '20px'}}>
-                  <li><strong>ALL requests require:</strong> <code>X-OpenClaw-Bot: true</code> and <code>X-OpenClaw-Bot-Secret: openclaw-secret-key-2024</code></li>
+                  <li><strong>ALL requests require:</strong> <code>X-OpenClaw-Bot: true</code> and <code>X-OpenClaw-Bot-Secret: YOUR_OPENCLAW_BOT_SECRET</code></li>
                   <li>Missing headers = 403 Forbidden error</li>
                   <li>Responses include <code>success</code> boolean</li>
                   <li>Validation scores: fuzzyMatch (0-1), semanticSimilarity (0-1), combined (0-1)</li>

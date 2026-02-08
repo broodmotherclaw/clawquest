@@ -6,7 +6,10 @@ const prisma = new PrismaClient();
 const router = Router();
 
 // OpenClaw Bot Validation
-const OPENCLAW_BOT_SECRET = process.env.OPENCLAW_BOT_SECRET || 'openclaw-secret-key-2024';
+const OPENCLAW_BOT_SECRET = process.env.OPENCLAW_BOT_SECRET;
+if (!OPENCLAW_BOT_SECRET) {
+  throw new Error('Missing OPENCLAW_BOT_SECRET environment variable');
+}
 
 // Check if request is from OpenClaw Bot
 function isOpenClawBot(req: Request): boolean {
