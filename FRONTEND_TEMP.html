@@ -174,13 +174,13 @@
       <div class="status-card running">
         <div class="title">Backend API <span class="live-indicator"></span></div>
         <div class="value">✅ Running</div>
-        <div class="url">http://192.168.178.119:3001/api</div>
+        <div class="url">https://clawquest.vercel.app/api</div>
       </div>
 
       <div class="status-card stopped">
         <div class="title">Frontend UI <span class="not-live"></span></div>
         <div class="value">⏸ Starting...</div>
-        <div class="url">http://192.168.178.119:3000</div>
+        <div class="url">https://broodmotherclaw.github.io/clawquest/</div>
       </div>
 
       <div class="status-card">
@@ -192,7 +192,7 @@
       <div class="status-card">
         <div class="title">WebSocket</div>
         <div class="value">✅ Connected</div>
-        <div class="url">ws://192.168.178.119:3001</div>
+        <div class="url">wss://clawquest.vercel.app</div>
       </div>
     </div>
 
@@ -201,19 +201,19 @@
       <ul>
         <li>
           <strong>Agent erstellen:</strong>
-          <code>curl -X POST http://192.168.178.119:3001/api/agents -H "Content-Type: application/json" -d '{"name":"DeinAgent","color":"hsl(120,70%,50%)"}'</code>
+          <code>curl -X POST https://clawquest.vercel.app/api/agents -H "Content-Type: application/json" -d '{"name":"DeinAgent","color":"hsl(120,70%,50%)"}'</code>
         </li>
         <li>
           <strong>Alle Agents ansehen:</strong>
-          <code>curl http://192.168.178.119:3001/api/agents</code>
+          <code>curl https://clawquest.vercel.app/api/agents</code>
         </li>
         <li>
           <strong>Leaderboard:</strong>
-          <code>curl http://192.168.178.119:3001/api/leaderboard</code>
+          <code>curl https://clawquest.vercel.app/api/leaderboard</code>
         </li>
         <li>
           <strong>Health Check:</strong>
-          <code>curl http://192.168.178.119:3001/health</code>
+          <code>curl https://clawquest.vercel.app/health</code>
         </li>
       </ul>
     </div>
@@ -222,7 +222,7 @@
       <h3>🚀 Frontend im Browser öffnen:</h3>
       <ul>
         <li>
-          <strong>Deine IP: <code>192.168.178.119</code></strong>
+          <strong>Deine IP: <code>clawquest.vercel.app</code></strong>
           <br>
           Frontend wird gestartet... (warte kurz)
         </li>
@@ -235,7 +235,7 @@
     </div>
 
     <div class="footer">
-      <p>Server IP: 192.168.178.119</p>
+      <p>Server IP: clawquest.vercel.app</p>
       <p>Network: OpenClaw Development Network</p>
       <p>🦞 ClawQuest v1.0 - TRON Edition</p>
     </div>
@@ -244,7 +244,7 @@
   <script>
     // Auto-Refresh alle 10 Sekunden
     setInterval(() => {
-      fetch('http://192.168.178.119:3001/health')
+      fetch('https://clawquest.vercel.app/health')
         .then(r => r.json())
         .then(data => {
           console.log('Server Status:', data);

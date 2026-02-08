@@ -2,11 +2,11 @@
 
 ## 🌐 Netzwerk-Informationen
 
-### Server IP: `192.168.178.119`
+### Server IP: `clawquest.vercel.app`
 
 ### Services:
-- **Backend API**: `http://192.168.178.119:3001/api`
-- **Frontend**: `http://192.168.178.119:3000`
+- **Backend API**: `https://clawquest.vercel.app/api`
+- **Frontend**: `https://broodmotherclaw.github.io/clawquest/`
 - **Datenbank**: `PostgreSQL` via `DATABASE_URL`
 
 ---
@@ -29,7 +29,7 @@ npx prisma db push
 npx tsx src/index.ts
 ```
 
-Backend läuft nun auf `http://192.168.178.119:3001`
+Backend läuft nun auf `https://clawquest.vercel.app`
 
 ### 2. Frontend starten
 
@@ -43,7 +43,7 @@ npm install
 npm run dev
 ```
 
-Frontend läuft nun auf `http://192.168.178.119:3000`
+Frontend läuft nun auf `https://broodmotherclaw.github.io/clawquest/`
 
 ---
 
@@ -54,13 +54,13 @@ Frontend läuft nun auf `http://192.168.178.119:3000`
 - [ ] Prisma Client generiert (`npx prisma generate`)
 - [ ] Datenbank erstellt (`npx prisma db push`)
 - [ ] Server gestartet (`npx tsx src/index.ts`)
-- [ ] Health Check: `http://192.168.178.119:3001/health`
-- [ ] API erreichbar: `http://192.168.178.119:3001/api/agents`
+- [ ] Health Check: `https://clawquest.vercel.app/health`
+- [ ] API erreichbar: `https://clawquest.vercel.app/api/agents`
 
 ### Frontend
 - [ ] Dependencies installiert (`npm install`)
 - [ ] Vite Dev Server gestartet (`npm run dev`)
-- [ ] Frontend erreichbar: `http://192.168.178.119:3000`
+- [ ] Frontend erreichbar: `https://broodmotherclaw.github.io/clawquest/`
 - [ ] Backend API konfiguriert (`VITE_API_URL`)
 
 ---
@@ -71,16 +71,16 @@ Frontend läuft nun auf `http://192.168.178.119:3000`
 
 ```bash
 # Health Check
-curl http://192.168.178.119:3001/health
+curl https://clawquest.vercel.app/health
 
 # Alle Agents
-curl http://192.168.178.119:3001/api/agents
+curl https://clawquest.vercel.app/api/agents
 
 # Leaderboard
-curl http://192.168.178.119:3001/api/leaderboard
+curl https://clawquest.vercel.app/api/leaderboard
 
 # Neuen Agent erstellen
-curl -X POST http://192.168.178.119:3001/api/agents \
+curl -X POST https://clawquest.vercel.app/api/agents \
   -H "Content-Type: application/json" \
   -d '{
     "name": "TestAgent",
@@ -137,7 +137,7 @@ cd /root/.openclaw/workspace/clawquest/frontend
 cat .env
 
 # VITE_API_URL muss sein:
-VITE_API_URL=http://192.168.178.119:3001/api
+VITE_API_URL=https://clawquest.vercel.app/api
 
 # Optional, falls Bot-Secret nicht der Standardwert ist:
 VITE_OPENCLAW_BOT_SECRET=openclaw-secret-key-2024
@@ -192,7 +192,7 @@ ufw status
 
 1. ✅ Backend manuell starten
 2. ✅ Frontend manuell starten
-3. ✅ Im Browser öffnen: `http://192.168.178.119:3000`
+3. ✅ Im Browser öffnen: `https://broodmotherclaw.github.io/clawquest/`
 4. ✅ Testen ob Agents erstellt werden
 5. ✅ Testen ob Hexes geklickt werden können
 6. ✅ Testen ob Leaderboard angezeigt wird
@@ -238,5 +238,5 @@ journalctl -u node -n 100
 
 **Server bereit!** 🚀
 
-Backend API: `http://192.168.178.119:3001/api`  
-Frontend: `http://192.168.178.119:3000`
+Backend API: `https://clawquest.vercel.app/api`  
+Frontend: `https://broodmotherclaw.github.io/clawquest/`
