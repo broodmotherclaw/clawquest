@@ -62,35 +62,27 @@ jobs:
           DATABASE_URL: ${{ secrets.DATABASE_URL }}
         run: |
           echo "🌟 Checking wafers..."
-          
-          # Get wafer count
-          WAER_COUNT=$(npx prisma db execute --stdin --url $DATABASE_URL --schema=public < <(echo "SELECT COUNT(*) as count FROM wafers;"))
-          echo "ℹ️  Current wafers count: $WAER_COUNT"
-          
-          # Check if wafers table exists
-          TABLE_EXISTS=$(npx prisma db execute --stdin --url $DATABASE_URL --schema=public < <(echo "SELECT EXISTS (SELECT FROM information_schema.tables WHERE table_name = 'wafers') as exists;"))
-          
-          if [[ "$TABLE_EXISTS" == *"false"* ]]; then
-            echo "⚠️  Wafers table does not exist, skipping initialization"
+          # Prisma maps model Wafer to table "Wafer" and field isActive to "isActive".
+          # Seed once if table exists and is empty.
+          WAFER_COUNT=$(npx prisma db execute --stdin --url "$DATABASE_URL" < <(echo 'SELECT COUNT(*) AS count FROM "Wafer";') || true)
+          echo "ℹ️  Current wafers count: $WAFER_COUNT"
+
+          if [[ "$WAFER_COUNT" == *"count"* ]] && [[ "$WAFER_COUNT" == *"0"* ]]; then
+            echo "🌟 Initializing wafers..."
+            npx prisma db execute --stdin --url "$DATABASE_URL" < <(echo '
+              INSERT INTO "Wafer" ("id","x","y","value","isActive")
+              SELECT
+                md5(random()::text || gs::text),
+                floor(random()*75)::int,
+                floor(random()*75)::int,
+                floor(random()*100 + 1)::int,
+                true
+              FROM generate_series(1, 5000) AS gs
+              ON CONFLICT ("x","y") DO NOTHING;
+            ')
+            echo "✅ Wafer initialization completed"
           else
-            if [[ "$WAER_COUNT" == *"0"* ]]; then
-              echo "🌟 Initializing wafers..."
-              
-              GRID_SIZE=75
-              TOTAL_WAFERS=5000
-              
-              for i in $(seq 1 $TOTAL_WAFERS); do
-                x=$((RANDOM % GRID_SIZE))
-                y=$((RANDOM % GRID_SIZE))
-                value=$((RANDOM % 100 + 1))
-                
-                npx prisma db execute --stdin --url $DATABASE_URL --schema=public < <(echo "INSERT INTO wafers (id, x, y, value, is_active) VALUES ('wafer_$i', $x, $y, $value, true);")
-              done
-              
-              echo "✅ $TOTAL_WAFERS wafers initialized successfully"
-            else
-              echo "ℹ️  $WAER_COUNT wafers already exist, skipping initialization"
-            fi
+            echo "ℹ️  Wafers already exist or table not ready, skipping initialization"
           fi
       
       - name: Verify database
@@ -102,12 +94,12 @@ jobs:
           echo "🔍 Verifying database schema..."
           
           # Check agents table
-          AGENT_COUNT=$(npx prisma db execute --stdin --url $DATABASE_URL --schema=public < <(echo "SELECT COUNT(*) as count FROM agents;"))
+          AGENT_COUNT=$(npx prisma db execute --stdin --url "$DATABASE_URL" < <(echo 'SELECT COUNT(*) as count FROM "Agent";'))
           echo "   ✅ Agents table: $AGENT_COUNT rows"
           
           # Check wafers table
-          WAER_COUNT=$(npx prisma db execute --stdin --url $DATABASE_URL --schema=public < <(echo "SELECT COUNT(*) as count FROM wafers;"))
-          echo "   ✅ Wafers table: $WAER_COUNT rows"
+          WAFER_COUNT=$(npx prisma db execute --stdin --url "$DATABASE_URL" < <(echo 'SELECT COUNT(*) as count FROM "Wafer";'))
+          echo "   ✅ Wafers table: $WAFER_COUNT rows"
           
           echo ""
           echo "✅ Database deployment successful!"
@@ -125,5 +117,5 @@ jobs:
         env:
           DATABASE_URL: ${{ secrets.DATABASE_URL }}
         run: |
-          echo "⚠️  Migration failed, rolling back..."
-          env DATABASE_URL=${{ secrets.DATABASE_URL }} npx prisma db push --skip-generate --force-reset
+          echo "⚠️  Migration failed. Automatic rollback disabled to prevent destructive reset."
+          echo "🛠️  Please inspect logs and fix forward with a new migration/db push."
