@@ -76,31 +76,42 @@ export function createApp() {
 
   // Health check (supports /health and /api/health for serverless)
   const healthHandler = async (_req: express.Request, res: express.Response) => {
-    const stats = await prisma.agent.aggregate({
-      _count: { id: true }
-    });
-    const hexStats = await prisma.hex.aggregate({
-      _count: { id: true }
-    });
-    const gangStats = await prisma.gang.aggregate({
-      _count: { id: true }
-    });
-    const waferStats = await prisma.wafer.aggregate({
-      _count: { id: true }
-    });
+    try {
+      const stats = await prisma.agent.aggregate({
+        _count: { id: true }
+      });
+      const hexStats = await prisma.hex.aggregate({
+        _count: { id: true }
+      });
+      const gangStats = await prisma.gang.aggregate({
+        _count: { id: true }
+      });
+      const waferStats = await prisma.wafer.aggregate({
+        _count: { id: true }
+      });
 
-    res.json({
-      status: 'ok',
-      timestamp: new Date().toISOString(),
-      database: prisma ? 'connected' : 'not connected',
-      mode: 'OpenClaw Agents',
-      stats: {
-        totalAgents: stats._count.id,
-        totalHexes: hexStats._count.id,
-        totalGangs: gangStats._count.id,
-        totalWafers: waferStats._count.id
-      }
-    });
+      res.json({
+        status: 'ok',
+        timestamp: new Date().toISOString(),
+        database: 'connected',
+        mode: 'OpenClaw Agents',
+        stats: {
+          totalAgents: stats._count.id,
+          totalHexes: hexStats._count.id,
+          totalGangs: gangStats._count.id,
+          totalWafers: waferStats._count.id
+        }
+      });
+    } catch (error: any) {
+      console.error('Health check database error:', error?.message || error);
+      res.json({
+        status: 'degraded',
+        timestamp: new Date().toISOString(),
+        database: 'not connected',
+        mode: 'OpenClaw Agents',
+        error: 'Database connection failed'
+      });
+    }
   };
 
   app.get('/health', healthHandler);
