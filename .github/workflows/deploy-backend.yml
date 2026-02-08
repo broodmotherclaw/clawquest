@@ -1,0 +1,94 @@
+name: Deploy Backend to Vercel
+
+on:
+  push:
+    branches: [ main ]
+    paths:
+      - 'backend/**'
+
+env:
+  NODE_VERSION: '18'
+  VERCEL_ORG_ID: 'team_broodmotherclaw'
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+      
+      - name: Cache dependencies
+        uses: actions/cache@v3
+        with:
+          path: backend/node_modules
+          key: ${{ runner.os }}-node-${{ env.NODE_VERSION }}-${{ hashFiles('backend/package-lock.json') }}
+      
+      - name: Install dependencies
+        working-directory: ./backend
+        run: npm ci
+      
+      - name: Install Vercel CLI
+        run: npm install --global vercel@latest
+      
+      - name: Pull Vercel Environment
+        working-directory: ./backend
+        run: vercel env pull --token=${{ secrets.VERCEL_OWNCLAW }} --yes
+      
+      - name: Deploy to Vercel
+        id: deploy
+        working-directory: ./backend
+        run: |
+          echo "🚀 Deploying to Vercel..."
+          vercel --prod --token=${{ secrets.VERCEL_OWNCLAW }} --confirm
+      
+      - name: Get deployment URL
+        id: url
+        working-directory: ./backend
+        run: |
+          DEPLOYMENT_URL=$(vercel ls --token=${{ secrets.VERCEL_OWNCLAW }} --prod --yes 2>/dev/null | grep -oP '(https://[^ ]+\.vercel\.app[^ ]*)' | head -1)
+          echo "deployment-url=$DEPLOYMENT_URL" >> $GITHUB_OUTPUT
+      
+      - name: Update environment variables
+        working-directory: ./backend
+        run: |
+          echo "🔧 Updating environment variables..."
+          
+          vercel env add DATABASE_URL "${{ secrets.SUPABASE_DB_URL }}" --token=${{ secrets.VERCEL_OWNCLAW }} --prod --yes
+          vercel env add SUPABASE_URL "${{ secrets.SUPABASE_URL }}" --token=${{ secrets.VERCEL_OWNCLAW }} --prod --yes
+          vercel env add SUPABASE_ANON_KEY "${{ secrets.SUPABASE_ANON_KEY }}" --token=${{ secrets.VERCEL_OWNCLAW }} --prod --yes
+          vercel env add OPENCLAW_BOT_SECRET "${{ secrets.OPENCLAW_BOT_SECRET }}" --token=${{ secrets.VERCEL_OWNCLAW }} --prod --yes
+      
+      - name: Wait for deployment
+        working-directory: ./backend
+        run: |
+          echo "⏳ Waiting for deployment to be ready..."
+          sleep 30
+      
+      - name: Test deployment
+        working-directory: ./backend
+        run: |
+          DEPLOYMENT_URL="${{ steps.url.outputs.deployment-url }}"
+          echo "🧪 Testing deployment at $DEPLOYMENT_URL..."
+          
+          # Health check
+          HTTP_STATUS=$(curl -s -o /dev/null -w "%{http_code}" "$DEPLOYMENT_URL/api/health")
+          
+          if [ "$HTTP_STATUS" = "200" ]; then
+            echo "✅ Health check passed (HTTP $HTTP_STATUS)"
+          else
+            echo "❌ Health check failed (HTTP $HTTP_STATUS)"
+            exit 1
+          fi
+      
+      - name: Deployment success
+        working-directory: ./backend
+        run: |
+          DEPLOYMENT_URL="${{ steps.url.outputs.deployment-url }}"
+          echo "✅ Backend deployed successfully!"
+          echo "🌐 URL: $DEPLOYMENT_URL"
+          echo "📊 Check deployment status at Vercel dashboard"

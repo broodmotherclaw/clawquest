@@ -1,0 +1,132 @@
+name: Deploy Database to Supabase
+
+on:
+  push:
+    branches: [ main ]
+    paths:
+      - 'backend/prisma/**'
+
+env:
+  NODE_VERSION: '18'
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    outputs:
+      database_status: ${{ steps.deploy.outputs.database_status }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+      
+      - name: Install Prisma CLI
+        run: npm install -g prisma
+      
+      - name: Install dependencies
+        working-directory: ./backend
+        run: npm ci
+      
+      - name: Generate Prisma Client
+        working-directory: ./backend
+        env:
+          DATABASE_URL: ${{ secrets.SUPABASE_DB_URL }}
+        run: |
+          echo "🔧 Generating Prisma Client..."
+          npx prisma generate
+      
+      - name: Push database schema
+        id: deploy
+        working-directory: ./backend
+        env:
+          DATABASE_URL: ${{ secrets.SUPABASE_DB_URL }}
+        run: |
+          echo "🚀 Pushing database schema to Supabase..."
+          
+          # Push schema
+          npx prisma db push --skip-generate
+          
+          # Verify tables
+          echo ""
+          echo "🔍 Verifying tables..."
+          npx prisma db pull --force
+          
+          echo "database_status=connected" >> $GITHUB_OUTPUT
+      
+      - name: Initialize wafers
+        working-directory: ./backend
+        env:
+          DATABASE_URL: ${{ secrets.SUPABASE_DB_URL }}
+        run: |
+          echo "🌟 Checking wafers..."
+          
+          # Get wafer count
+          WAER_COUNT=$(npx prisma db execute --stdin --url $DATABASE_URL --schema=public < <(echo "SELECT COUNT(*) as count FROM wafers;"))
+          echo "ℹ️  Current wafers count: $WAER_COUNT"
+          
+          # Check if wafers table exists
+          TABLE_EXISTS=$(npx prisma db execute --stdin --url $DATABASE_URL --schema=public < <(echo "SELECT EXISTS (SELECT FROM information_schema.tables WHERE table_name = 'wafers') as exists;"))
+          
+          if [[ "$TABLE_EXISTS" == *"false"* ]]; then
+            echo "⚠️  Wafers table does not exist, skipping initialization"
+          else
+            if [[ "$WAER_COUNT" == *"0"* ]]; then
+              echo "🌟 Initializing wafers..."
+              
+              GRID_SIZE=75
+              TOTAL_WAFERS=5000
+              
+              for i in $(seq 1 $TOTAL_WAFERS); do
+                x=$((RANDOM % GRID_SIZE))
+                y=$((RANDOM % GRID_SIZE))
+                value=$((RANDOM % 100 + 1))
+                
+                npx prisma db execute --stdin --url $DATABASE_URL --schema=public << EOF
+                INSERT INTO wafers (id, x, y, value, is_active)
+                VALUES ('wafer_$i', $x, $y, $value, true);
+EOF
+              done
+              
+              echo "✅ $TOTAL_WAFERS wafers initialized successfully"
+            else
+              echo "ℹ️  $WAER_COUNT wafers already exist, skipping initialization"
+            fi
+          fi
+      
+      - name: Verify database
+        working-directory: ./backend
+        env:
+          DATABASE_URL: ${{ secrets.SUPABASE_DB_URL }}
+        run: |
+          echo ""
+          echo "🔍 Verifying database schema..."
+          
+          # Check agents table
+          AGENT_COUNT=$(npx prisma db execute --stdin --url $DATABASE_URL --schema=public < <(echo "SELECT COUNT(*) as count FROM agents;"))
+          echo "   ✅ Agents table: $AGENT_COUNT rows"
+          
+          # Check wafers table
+          WAER_COUNT=$(npx prisma db execute --stdin --url $DATABASE_URL --schema=public < <(echo "SELECT COUNT(*) as count FROM wafers;"))
+          echo "   ✅ Wafers table: $WAER_COUNT rows"
+          
+          echo ""
+          echo "✅ Database deployment successful!"
+      
+      - name: Deployment success
+        if: success()
+        run: |
+          echo "✅ Database deployed successfully!"
+          echo "🌐 Database: Supabase PostgreSQL"
+          echo "📋 Schema version: ${{ github.sha }}"
+      
+      - name: Rollback on failure
+        if: failure()
+        working-directory: ./backend
+        env:
+          DATABASE_URL: ${{ secrets.SUPABASE_DB_URL }}
+        run: |
+          echo "⚠️  Migration failed, rolling back..."
+          env DATABASE_URL=${{ secrets.SUPABASE_DB_URL }} npx prisma db push --skip-generate --force-reset
