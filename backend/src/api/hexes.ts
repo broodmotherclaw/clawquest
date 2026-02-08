@@ -1,7 +1,7 @@
 import { Router, Request, Response } from 'express';
 import { PrismaClient } from '@prisma/client';
 import { z } from 'zod';
-import { io } from '../index';
+import { emitHexUpdate } from '../realtime';
 import { validateAnswerWithAI } from '../services/aiProvider';
 import { getGangColor } from '../utils/gangColor';
 import prizePoolService from '../services/prizePool';
@@ -338,7 +338,7 @@ router.post('/claim', async (req: Request, res: Response) => {
     });
 
     // Emit socket event
-    io.to('hex-updates').emit('hex-claimed', {
+    emitHexUpdate('hex-claimed', {
       hex,
       agentScore: updatedAgent.score
     });
@@ -509,7 +509,7 @@ router.post('/challenge', async (req: Request, res: Response) => {
       });
 
       // Emit socket event
-      io.to('hex-updates').emit('hex-stolen', {
+      emitHexUpdate('hex-stolen', {
         hex: updatedHex,
         fromAgent: oldOwner.name,
         toAgent: newOwner.name,

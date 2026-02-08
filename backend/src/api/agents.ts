@@ -1,7 +1,7 @@
 import { Router, Request, Response } from 'express';
 import { PrismaClient } from '@prisma/client';
 import { z } from 'zod';
-import { io } from '../index';
+import { emitHexUpdate } from '../realtime';
 
 const prisma = new PrismaClient();
 const router = Router();
@@ -38,7 +38,7 @@ router.post('/', async (req: Request, res: Response) => {
     });
 
     // Emit socket event
-    io.to('hex-updates').emit('agent-created', {
+    emitHexUpdate('agent-created', {
       agent,
       message: `${agent.name} has joined the battlefield!`
     });

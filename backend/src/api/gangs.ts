@@ -1,6 +1,6 @@
 import { Router, Request, Response } from 'express';
 import { PrismaClient } from '@prisma/client';
-import { io } from '../index';
+import { emitHexUpdate } from '../realtime';
 import { generateGangLogo } from '../utils/gangLogo';
 import { getGangColor } from '../utils/gangColor';
 
@@ -150,7 +150,7 @@ router.post('/create', async (req: Request, res: Response) => {
     });
 
     // Emit socket event
-    io.to('hex-updates').emit('gang-created', { gang });
+    emitHexUpdate('gang-created', { gang });
 
     res.json({
       success: true,
@@ -233,7 +233,7 @@ router.post('/join', async (req: Request, res: Response) => {
     });
 
     // Emit socket event
-    io.to('hex-updates').emit('gang-joined', { agentId, gangId });
+    emitHexUpdate('gang-joined', { agentId, gangId });
 
     res.json({
       success: true,
