@@ -9,6 +9,7 @@ on:
 env:
   NODE_VERSION: '18'
   VERCEL_ORG_ID: 'team_broodmotherclaw'
+  VERCEL_PROJECT_ID: 'prj_L8RxWLrglf3vy5w2bgy05QkWuyf0'
 
 jobs:
   deploy:
@@ -37,8 +38,10 @@ jobs:
       
       - name: Pull Vercel Environment
         working-directory: ./backend
-        run: vercel env pull --token=${{ secrets.VERCEL_OWNCLAW }} --yes
-      
+        run: |
+          echo "🔧 Pulling Vercel Environment..."
+          vercel env pull --token=${{ secrets.VERCEL_OWNCLAW }} --yes --environment=production
+          
       - name: Deploy to Vercel
         id: deploy
         working-directory: ./backend
@@ -82,6 +85,7 @@ jobs:
             echo "✅ Health check passed (HTTP $HTTP_STATUS)"
           else
             echo "❌ Health check failed (HTTP $HTTP_STATUS)"
+            echo "⚠️  Deployment might not be ready yet"
             exit 1
           fi
       
