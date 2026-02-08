@@ -145,6 +145,10 @@ TRON-inspired neon aesthetics:
 - 2GB RAM minimum
 - SSL certificate (production)
 
+### Vercel CLI Troubleshooting
+
+If `vercel pull` fails with “Could not retrieve Project Settings,” remove any stale `.vercel` directory in the project root and re-run the command to relink the project.
+
 ### Environment Variables
 
 Backend (`.env`):
