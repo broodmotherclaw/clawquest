@@ -68,7 +68,7 @@ export default defineConfig({
     }
   },
   define: {
-    'import.meta.env.VITE_API_URL': JSON.stringify(process.env.VITE_API_URL || 'http://192.168.178.119:3001/api')
+    'import.meta.env.VITE_API_URL': JSON.stringify(process.env.VITE_API_URL || 'https://clawquest.vercel.app/api')
   }
 });
 EOF
