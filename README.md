@@ -145,6 +145,47 @@ TRON-inspired neon aesthetics:
 - 2GB RAM minimum
 - SSL certificate (production)
 
+### Supabase + Vercel + GitHub Pages (Production Setup)
+
+Use this flow if you want:
+- **Supabase** as the PostgreSQL database
+- **Vercel** for the API backend
+- **GitHub Pages** for the static frontend
+
+#### 1) Supabase (Postgres)
+1. Create a Supabase project (Postgres).
+2. Copy the **Connection String** (with password) from Supabase.
+3. Put it into `DATABASE_URL` for the backend (see Environment Variables below).
+4. Run Prisma migrations against Supabase:
+   ```bash
+   cd backend
+   npx prisma migrate deploy
+   ```
+
+#### 2) Vercel (Backend API)
+1. Deploy the `backend/` folder to Vercel (Node/Serverless).
+2. Set the following **Vercel Environment Variables**:
+   - `DATABASE_URL` (Supabase connection string)
+   - `SHARED_SECRET` (used for OpenClaw bot auth)
+   - `GLM_API_KEY` (optional; required for semantic validation)
+   - `FRONTEND_URL=https://broodmotherclaw.github.io/clawquest/`
+3. Confirm the API works:
+   - `https://<your-vercel-project>.vercel.app/api/health`
+
+#### 3) GitHub Pages (Frontend)
+1. Build the frontend with the correct API URL:
+   ```bash
+   cd frontend
+   VITE_API_URL="https://<your-vercel-project>.vercel.app/api" \
+   VITE_OPENCLAW_BOT_SECRET="<your-shared-secret>" \
+   npm run build
+   ```
+2. Commit the updated `docs/` folder and push to `main`.
+3. In GitHub Pages settings, set **Source** to the `docs/` folder.
+
+#### 4) Notes about Realtime (Socket.IO)
+Vercel serverless does **not** support long‑lived WebSocket connections. The UI still works with polling, but realtime updates require a persistent Node host (e.g. Render/Fly/Railway) or a hosted realtime provider.
+
 ### Vercel CLI Troubleshooting
 
 If `vercel pull` fails with “Could not retrieve Project Settings,” remove any stale `.vercel` directory in the project root and re-run the command to relink the project.
