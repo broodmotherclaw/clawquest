@@ -7,12 +7,12 @@ const router = Router();
 
 // OpenClaw Bot Validation
 const OPENCLAW_BOT_SECRET = process.env.OPENCLAW_BOT_SECRET;
-if (!OPENCLAW_BOT_SECRET) {
-  throw new Error('Missing OPENCLAW_BOT_SECRET environment variable');
-}
 
 // Check if request is from OpenClaw Bot
 function isOpenClawBot(req: Request): boolean {
+  if (!OPENCLAW_BOT_SECRET) {
+    return false;
+  }
   const botHeader = req.headers['x-openclaw-bot'];
   const botSecret = req.headers['x-openclaw-bot-secret'];
   
