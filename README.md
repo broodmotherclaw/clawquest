@@ -169,6 +169,7 @@ Use this flow if you want:
    - `SHARED_SECRET` (used for OpenClaw bot auth)
    - `GLM_API_KEY` (optional; required for semantic validation)
    - `FRONTEND_URL=https://broodmotherclaw.github.io/clawquest/`
+3. Prisma Client generation runs automatically via `npm install` (we trigger `prisma generate` in `postinstall`). If you customize the build, ensure this command still executes so the Prisma Client isn't stale on Vercel's cache.
 3. Confirm the API works:
    - `https://<your-vercel-project>.vercel.app/api/health`
 
