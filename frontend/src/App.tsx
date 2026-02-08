@@ -34,6 +34,15 @@ function App() {
     return () => window.removeEventListener('resize', handleResize);
   }, []);
 
+  useEffect(() => {
+    const setAppHeight = () => {
+      document.documentElement.style.setProperty('--app-height', `${window.innerHeight}px`);
+    };
+    setAppHeight();
+    window.addEventListener('resize', setAppHeight);
+    return () => window.removeEventListener('resize', setAppHeight);
+  }, []);
+
   // Generate initial hex grid
   const generateHexGrid = useCallback((): Hex[] => {
     const grid: Hex[] = [];
@@ -195,7 +204,14 @@ function App() {
 
   const appStyle = {
     ...styles.app,
-    ...(isMobile ? { height: '100%', minHeight: '100vh', overflowY: 'auto' } : {}),
+    ...(isMobile
+      ? {
+          height: 'auto',
+          minHeight: 'var(--app-height)',
+          overflowY: 'auto',
+          WebkitOverflowScrolling: 'touch',
+        }
+      : {}),
   };
   const headerStyle = {
     ...styles.header,
@@ -436,16 +452,18 @@ function App() {
 // Styles
 const styles: Record<string, React.CSSProperties> = {
   app: {
-    width: '100vw',
-    height: '100vh',
+    width: '100%',
+    height: 'var(--app-height)',
+    minHeight: 'var(--app-height)',
     display: 'flex',
     flexDirection: 'column',
     background: '#050510',
     overflow: 'hidden',
   },
   loading: {
-    width: '100vw',
-    height: '100vh',
+    width: '100%',
+    height: 'var(--app-height)',
+    minHeight: 'var(--app-height)',
     display: 'flex',
     flexDirection: 'column',
     alignItems: 'center',
