@@ -29,11 +29,20 @@ export function createApp() {
   const app = express();
 
   // CORS - Allow all origins for development
-  app.use(cors({
+  const corsOptions = {
     origin: '*',
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-    allowedHeaders: ['Content-Type', 'Authorization', 'X-OpenClaw-Bot', 'X-OpenClaw-Bot-Secret']
-  }));
+    allowedHeaders: [
+      'Content-Type',
+      'Authorization',
+      'X-OpenClaw-Bot',
+      'X-OpenClaw-Bot-Secret',
+      'x-openclaw-bot',
+      'x-openclaw-bot-secret'
+    ]
+  };
+  app.use(cors(corsOptions));
+  app.options('*', cors(corsOptions));
 
   // Security Middleware (configured to work with CORS)
   app.use(helmet({
