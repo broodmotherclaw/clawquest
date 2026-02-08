@@ -49,6 +49,29 @@ jobs:
           {"orgId":"$VERCEL_ORG_ID","projectId":"$VERCEL_PROJECT_ID"}
           JSON
           vercel pull --token=${{ secrets.VERCEL_OWNCLAW }} --scope "$VERCEL_ORG_ID" --yes --environment=production
+
+      - name: Update environment variables (pre-deploy)
+        working-directory: ./backend
+        run: |
+          echo "🔧 Syncing Vercel environment variables (pre-deploy)..."
+
+          test -n "${{ secrets.DATABASE_URL }}"
+          test -n "${{ secrets.SUPABASE_URL }}"
+          test -n "${{ secrets.SUPABASE_ANON_KEY }}"
+          test -n "${{ secrets.OPENCLAW_BOT_SECRET }}"
+
+          sync_vercel_env() {
+            local name="$1"
+            local value="$2"
+            vercel env rm "$name" production --scope "$VERCEL_ORG_ID" --token=${{ secrets.VERCEL_OWNCLAW }} --yes >/dev/null 2>&1 || true
+            printf '%s' "$value" | vercel env add "$name" production --scope "$VERCEL_ORG_ID" --token=${{ secrets.VERCEL_OWNCLAW }}
+          }
+
+          sync_vercel_env "DATABASE_URL" "${{ secrets.DATABASE_URL }}"
+          sync_vercel_env "SUPABASE_URL" "${{ secrets.SUPABASE_URL }}"
+          sync_vercel_env "SUPABASE_ANON_KEY" "${{ secrets.SUPABASE_ANON_KEY }}"
+          sync_vercel_env "OPENCLAW_BOT_SECRET" "${{ secrets.OPENCLAW_BOT_SECRET }}"
+          sync_vercel_env "SHARED_SECRET" "${{ secrets.OPENCLAW_BOT_SECRET }}"
           
       - name: Deploy to Vercel
         id: deploy
