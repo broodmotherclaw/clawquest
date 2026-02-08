@@ -26,6 +26,13 @@ function App() {
   const [pan, setPan] = useState({ x: 0, y: 0 });
   const [showSetup, setShowSetup] = useState(false);
   const [showHowToEarn, setShowHowToEarn] = useState(false);
+  const [isMobile, setIsMobile] = useState(() => window.innerWidth <= 768);
+
+  useEffect(() => {
+    const handleResize = () => setIsMobile(window.innerWidth <= 768);
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
 
   // Generate initial hex grid
   const generateHexGrid = useCallback((): Hex[] => {
@@ -186,19 +193,120 @@ function App() {
     );
   }
 
+  const appStyle = {
+    ...styles.app,
+    ...(isMobile ? { height: '100%', minHeight: '100vh', overflowY: 'auto' } : {}),
+  };
+  const headerStyle = {
+    ...styles.header,
+    ...(isMobile
+      ? {
+          height: 'auto',
+          flexDirection: 'column',
+          alignItems: 'flex-start',
+          padding: '12px 16px',
+          gap: '12px',
+        }
+      : {}),
+  };
+  const logoTextStyle = {
+    ...styles.logoText,
+    ...(isMobile ? { fontSize: '20px', letterSpacing: '3px' } : {}),
+  };
+  const logoIconStyle = {
+    ...styles.logoIcon,
+    ...(isMobile ? { fontSize: '26px' } : {}),
+  };
+  const headerCenterStyle = {
+    ...styles.headerCenter,
+    ...(isMobile ? { width: '100%', justifyContent: 'flex-start' } : {}),
+  };
+  const statsBarStyle = {
+    ...styles.statsBar,
+    ...(isMobile
+      ? {
+          width: '100%',
+          flexWrap: 'wrap',
+          justifyContent: 'space-between',
+          padding: '8px 12px',
+          gap: '12px',
+        }
+      : {}),
+  };
+  const headerRightStyle = {
+    ...styles.headerRight,
+    ...(isMobile ? { width: '100%', flexWrap: 'wrap', gap: '10px' } : {}),
+  };
+  const earnButtonStyle = {
+    ...styles.earnButton,
+    ...(isMobile ? { width: '100%', marginRight: 0 } : {}),
+  };
+  const setupButtonStyle = {
+    ...styles.setupButton,
+    ...(isMobile ? { width: '100%' } : {}),
+  };
+  const agentBadgeStyle = {
+    ...styles.agentBadge,
+    ...(isMobile ? { width: '100%', justifyContent: 'space-between' } : {}),
+  };
+  const mainStyle = {
+    ...styles.main,
+    ...(isMobile ? { flexDirection: 'column' } : {}),
+  };
+  const sidebarStyle = {
+    ...styles.sidebar,
+    ...(isMobile
+      ? {
+          width: '100%',
+          height: '240px',
+          order: 2,
+          borderRight: 'none',
+          borderTop: '1px solid rgba(0, 255, 255, 0.2)',
+        }
+      : {}),
+  };
+  const gameAreaStyle = {
+    ...styles.gameArea,
+    ...(isMobile ? { order: 1, minHeight: '60vh' } : {}),
+  };
+  const toolbarStyle = {
+    ...styles.toolbar,
+    ...(isMobile
+      ? {
+          height: 'auto',
+          flexDirection: 'column',
+          alignItems: 'flex-start',
+          padding: '12px 16px',
+          gap: '10px',
+        }
+      : {}),
+  };
+  const zoomControlsStyle = {
+    ...styles.zoomControls,
+    ...(isMobile ? { width: '100%', justifyContent: 'space-between' } : {}),
+  };
+  const gridInfoStyle = {
+    ...styles.gridInfo,
+    ...(isMobile ? { fontSize: '12px', width: '100%' } : {}),
+  };
+  const helpButtonStyle = {
+    ...styles.helpButton,
+    ...(isMobile ? { width: '100%' } : {}),
+  };
+
   return (
-    <div style={styles.app}>
+    <div style={appStyle}>
       {/* Header */}
-      <header style={styles.header}>
+      <header style={headerStyle}>
         <div style={styles.logoSection}>
-          <span style={styles.logoIcon}>🦞</span>
-          <span style={styles.logoText}>CLAWQUEST</span>
+          <span style={logoIconStyle}>🦞</span>
+          <span style={logoTextStyle}>CLAWQUEST</span>
           <span style={styles.betaBadge}>OPENCLAW</span>
         </div>
 
-        <div style={styles.headerCenter}>
+        <div style={headerCenterStyle}>
           {stats && (
-            <div style={styles.statsBar}>
+            <div style={statsBarStyle}>
               <div style={styles.stat}>
                 <span style={styles.statValue}>{stats.totalAgents}</span>
                 <span style={styles.statLabel}>Active Agents</span>
@@ -217,23 +325,23 @@ function App() {
           )}
         </div>
 
-        <div style={styles.headerRight}>
+        <div style={headerRightStyle}>
           <button 
-            style={styles.earnButton}
+            style={earnButtonStyle}
             onClick={() => setShowHowToEarn(true)}
             title="Learn how to earn money"
           >
             💰 How to Earn
           </button>
           {agent ? (
-            <div style={styles.agentBadge}>
+            <div style={agentBadgeStyle}>
               <span style={styles.agentDot} />
               <span style={styles.agentName}>{agent.name}</span>
               <span style={styles.agentScore}>{agent.score} pts</span>
             </div>
           ) : (
             <button 
-              style={styles.setupButton}
+              style={setupButtonStyle}
               onClick={() => setShowSetup(true)}
             >
               🤖 Initialize Agent
@@ -243,9 +351,9 @@ function App() {
       </header>
 
       {/* Main Content */}
-      <main style={styles.main}>
+      <main style={mainStyle}>
         {/* Left Sidebar - Leaderboard */}
-        <aside style={styles.sidebar}>
+        <aside style={sidebarStyle}>
           <Leaderboard 
             agents={leaderboard} 
             gangs={gangs}
@@ -254,20 +362,20 @@ function App() {
         </aside>
 
         {/* Center - Hex Grid */}
-        <div style={styles.gameArea}>
+        <div style={gameAreaStyle}>
           {/* Toolbar */}
-          <div style={styles.toolbar}>
-            <div style={styles.zoomControls}>
+          <div style={toolbarStyle}>
+            <div style={zoomControlsStyle}>
               <button style={styles.zoomBtn} onClick={() => handleZoom(-0.1)}>−</button>
               <span style={styles.zoomLevel}>{Math.round(zoom * 100)}%</span>
               <button style={styles.zoomBtn} onClick={() => handleZoom(0.1)}>+</button>
             </div>
-            <div style={styles.gridInfo}>
+            <div style={gridInfoStyle}>
               🎯 {rawHexData.length} claimed hexagons visible
               {rawHexData.length > 0 && ' | Click any hexagon to inspect'}
             </div>
             <button 
-              style={styles.helpButton}
+              style={helpButtonStyle}
               onClick={() => setShowSetup(true)}
             >
               📜 Agent Protocol
