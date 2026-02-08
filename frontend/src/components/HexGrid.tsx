@@ -43,15 +43,19 @@ export function HexGrid({ hexes, onHexClick, zoom, pan, onPan, onZoom, hexSize =
   const svgRef = useRef<SVGSVGElement>(null);
   const isDragging = useRef(false);
   const lastPos = useRef({ x: 0, y: 0 });
+  const activePointerId = useRef<number | null>(null);
 
-  // Handle mouse events for panning
-  const handleMouseDown = useCallback((e: React.MouseEvent) => {
+  // Handle pointer events for panning (mouse + touch)
+  const handlePointerDown = useCallback((e: React.PointerEvent<SVGSVGElement>) => {
+    if (activePointerId.current !== null) return;
+    activePointerId.current = e.pointerId;
     isDragging.current = true;
     lastPos.current = { x: e.clientX, y: e.clientY };
+    e.currentTarget.setPointerCapture(e.pointerId);
   }, []);
 
-  const handleMouseMove = useCallback((e: React.MouseEvent) => {
-    if (!isDragging.current) return;
+  const handlePointerMove = useCallback((e: React.PointerEvent<SVGSVGElement>) => {
+    if (!isDragging.current || activePointerId.current !== e.pointerId) return;
     
     const dx = e.clientX - lastPos.current.x;
     const dy = e.clientY - lastPos.current.y;
@@ -64,7 +68,10 @@ export function HexGrid({ hexes, onHexClick, zoom, pan, onPan, onZoom, hexSize =
     lastPos.current = { x: e.clientX, y: e.clientY };
   }, [pan, onPan]);
 
-  const handleMouseUp = useCallback(() => {
+  const handlePointerUp = useCallback((e: React.PointerEvent<SVGSVGElement>) => {
+    if (activePointerId.current === e.pointerId) {
+      activePointerId.current = null;
+    }
     isDragging.current = false;
   }, []);
 
@@ -98,11 +105,13 @@ export function HexGrid({ hexes, onHexClick, zoom, pan, onPan, onZoom, hexSize =
         height: '100%',
         cursor: isDragging.current ? 'grabbing' : 'grab',
         background: 'radial-gradient(ellipse at center, rgba(0, 20, 40, 0.3) 0%, rgba(5, 5, 16, 1) 100%)',
+        touchAction: 'none',
       }}
-      onMouseDown={handleMouseDown}
-      onMouseMove={handleMouseMove}
-      onMouseUp={handleMouseUp}
-      onMouseLeave={handleMouseUp}
+      onPointerDown={handlePointerDown}
+      onPointerMove={handlePointerMove}
+      onPointerUp={handlePointerUp}
+      onPointerCancel={handlePointerUp}
+      onPointerLeave={handlePointerUp}
       onWheel={handleWheel}
     >
       <defs>
@@ -212,7 +221,7 @@ export function HexGrid({ hexes, onHexClick, zoom, pan, onPan, onZoom, hexSize =
         fontSize="12"
         fontFamily="'Rajdhani', sans-serif"
       >
-        🖱️ Drag to pan • 🔍 Scroll to zoom • 👆 Click to interact
+        🖱️/👆 Drag to pan • 🔍 Scroll to zoom • Tap to interact
       </text>
     </svg>
   );
