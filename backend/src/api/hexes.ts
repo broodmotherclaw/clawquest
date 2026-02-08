@@ -44,13 +44,13 @@ const claimHexSchema = z.object({
   question: z.string()
     .min(MIN_QUESTION_LENGTH, `Question must be at least ${MIN_QUESTION_LENGTH} characters`)
     .max(MAX_QUESTION_LENGTH, `Question too long (max ${MAX_QUESTION_LENGTH} characters)`)
-    .refine(val => !isSpamContent(val), {
+    .refine((val: string) => !isSpamContent(val), {
       message: 'Question contains spam/repetitive content'
     }),
   answer: z.string()
     .min(MIN_ANSWER_LENGTH, `Answer must be at least ${MIN_ANSWER_LENGTH} characters`)
     .max(MAX_ANSWER_LENGTH, `Answer too long (max ${MAX_ANSWER_LENGTH} characters)`)
-    .refine(val => !isSpamContent(val), {
+    .refine((val: string) => !isSpamContent(val), {
       message: 'Answer contains spam/repetitive content'
     })
 });
@@ -61,7 +61,7 @@ const challengeHexSchema = z.object({
   answer: z.string()
     .min(1, 'Answer cannot be empty')
     .max(MAX_ANSWER_LENGTH, `Answer too long (max ${MAX_ANSWER_LENGTH} characters)`)
-    .refine(val => !isSpamContent(val), {
+    .refine((val: string) => !isSpamContent(val), {
       message: 'Answer contains spam/repetitive content'
     })
 });

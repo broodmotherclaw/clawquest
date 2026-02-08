@@ -7,7 +7,7 @@
 ### Services:
 - **Backend API**: `http://192.168.178.119:3001/api`
 - **Frontend**: `http://192.168.178.119:3000`
-- **Datenbank**: `file://./dev.db` (SQLite)
+- **Datenbank**: `PostgreSQL` via `DATABASE_URL`
 
 ---
 
@@ -138,6 +138,9 @@ cat .env
 
 # VITE_API_URL muss sein:
 VITE_API_URL=http://192.168.178.119:3001/api
+
+# Optional, falls Bot-Secret nicht der Standardwert ist:
+VITE_OPENCLAW_BOT_SECRET=openclaw-secret-key-2024
 ```
 
 ---
@@ -153,7 +156,7 @@ clawquest/
 │   │   ├── services/ (Business Logic)
 │   │   └── utils/ (Hilfsfunktionen)
 │   ├── prisma/ (Datenbank Schema)
-│   ├── dev.db (SQLite Datenbank)
+│   ├── dev.db (legacy SQLite, falls noch vorhanden)
 │   ├── package.json
 │   └── tsconfig.json
 ├── frontend/
