@@ -1,6 +1,6 @@
 # Dependencies
 node_modules/
-package-lock.json
+# package-lock.json  <-- WICHTIG! MUSS IN GIT SEIN!
 yarn.lock
 pnpm-lock.yaml
 
