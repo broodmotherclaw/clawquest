@@ -84,10 +84,7 @@ jobs:
                 y=$((RANDOM % GRID_SIZE))
                 value=$((RANDOM % 100 + 1))
                 
-                npx prisma db execute --stdin --url $DATABASE_URL --schema=public << EOF
-                INSERT INTO wafers (id, x, y, value, is_active)
-                VALUES ('wafer_$i', $x, $y, $value, true);
-EOF
+                npx prisma db execute --stdin --url $DATABASE_URL --schema=public < <(echo "INSERT INTO wafers (id, x, y, value, is_active) VALUES ('wafer_$i', $x, $y, $value, true);")
               done
               
               echo "✅ $TOTAL_WAFERS wafers initialized successfully"
