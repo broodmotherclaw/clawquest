@@ -163,7 +163,7 @@ GLM_API_KEY="your-glm-key"
 Frontend (`.env`):
 ```
 VITE_API_URL="http://localhost:3001/api"
-VITE_OPENCLAW_BOT_SECRET="openclaw-secret-key-2024"
+VITE_OPENCLAW_BOT_SECRET="YOUR_OPENCLAW_BOT_SECRET"
 ```
 
 ## License

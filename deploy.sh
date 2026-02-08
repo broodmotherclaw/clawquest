@@ -141,7 +141,7 @@ success_step "Vercel eingeloggt"
 
 # Pull environment
 echo "   - Environment Variables laden..."
-if ! vercel env pull --token=vercel_BmSEGQXAAnFADey6dYcrS323 --yes; then
+if ! vercel env pull --token="${VERCEL_TOKEN:?Missing VERCEL_TOKEN}" --yes; then
     error_exit "Vercel Environment Pull fehlgeschlagen"
 fi
 success_step "Environment Variables geladen"
@@ -160,22 +160,22 @@ echo ""
 echo -e "${BLUE}🔧 5. Environment Variables updaten...${NC}"
 
 # Database
-if ! vercel env add DATABASE_URL "postgresql://postgres:[YOUR-PASSWORD]@db.vaiqmblwcxammeeyzhji.supabase.co:5432/postgres" --token=vercel_BmSEGQXAAnFADey6dYcrS323 --prod --yes; then
+if ! vercel env add DATABASE_URL "postgresql://postgres:[YOUR-PASSWORD]@db.vaiqmblwcxammeeyzhji.supabase.co:5432/postgres" --token="${VERCEL_TOKEN:?Missing VERCEL_TOKEN}" --prod --yes; then
     error_exit "DATABASE_URL hinzufügen fehlgeschlagen"
 fi
 success_step "DATABASE_URL hinzugefügt"
 
-if ! vercel env add SUPABASE_URL "https://vaiqmblwcxammeeyzhji.supabase.co" --token=vercel_BmSEGQXAAnFADey6dYcrS323 --prod --yes; then
+if ! vercel env add SUPABASE_URL "https://vaiqmblwcxammeeyzhji.supabase.co" --token="${VERCEL_TOKEN:?Missing VERCEL_TOKEN}" --prod --yes; then
     error_exit "SUPABASE_URL hinzufügen fehlgeschlagen"
 fi
 success_step "SUPABASE_URL hinzugefügt"
 
-if ! vercel env add SUPABASE_ANON_KEY "eyJhbGciOiJIUzI1NiJ9..." --token=vercel_BmSEGQXAAnFADey6dYcrS323 --prod --yes; then
+if ! vercel env add SUPABASE_ANON_KEY "eyJhbGciOiJIUzI1NiJ9..." --token="${VERCEL_TOKEN:?Missing VERCEL_TOKEN}" --prod --yes; then
     error_exit "SUPABASE_ANON_KEY hinzufügen fehlgeschlagen"
 fi
 success_step "SUPABASE_ANON_KEY hinzugefügt"
 
-if ! vercel env add OPENCLAW_BOT_SECRET "openclaw-secret-key-2024" --token=vercel_BmSEGQXAAnFADey6dYcrS323 --prod --yes; then
+if ! vercel env add OPENCLAW_BOT_SECRET "YOUR_OPENCLAW_BOT_SECRET" --token="${VERCEL_TOKEN:?Missing VERCEL_TOKEN}" --prod --yes; then
     error_exit "OPENCLAW_BOT_SECRET hinzufügen fehlgeschlagen"
 fi
 success_step "OPENCLAW_BOT_SECRET hinzugefügt"
@@ -327,7 +327,7 @@ echo "   - GitHub Secrets hinzufügen:"
 echo "     https://github.com/broodmotherclaw/clawquest/settings/secrets/actions"
 echo ""
 echo "   - Secrets:"
-echo "     - VERCEL_TOKEN: vercel_BmSEGQXAAnFADey6dYcrS323"
+echo "     - VERCEL_TOKEN: <your-vercel-token>"
 echo "     - SUPABASE_DB_URL: postgresql://postgres:[YOUR-PASSWORD]@db.vaiqmblwcxammeeyzhji.supabase.co:5432/postgres"
 echo "     - SUPABASE_URL: https://vaiqmblwcxammeeyzhji.supabase.co"
 

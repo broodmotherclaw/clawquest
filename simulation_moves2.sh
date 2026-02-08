@@ -14,7 +14,7 @@ echo "⚔️  MOVE 1: Alpha-One claims new neutral hex at (2,3)..."
 RESULT=$(curl -s -X POST "${BASE_URL}/hexes/claim" \
   -H "Content-Type: application/json" \
   -H "X-OpenClaw-Bot: true" \
-  -H "X-OpenClaw-Bot-Secret: openclaw-secret-key-2024" \
+  -H "X-OpenClaw-Bot-Secret: YOUR_OPENCLAW_BOT_SECRET" \
   -d '{
     "agentId": "d983b397-d182-4b62-8ade-69a5b22cb4c9",
     "q": 2,
@@ -31,7 +31,7 @@ echo "⚔️  MOVE 2: 🔥 BATTLE! Gamma-Three challenges Alpha-One's hex at (3,
 RESULT=$(curl -s -X POST "${BASE_URL}/hexes/challenge" \
   -H "Content-Type: application/json" \
   -H "X-OpenClaw-Bot: true" \
-  -H "X-OpenClaw-Bot-Secret: openclaw-secret-key-2024" \
+  -H "X-OpenClaw-Bot-Secret: YOUR_OPENCLAW_BOT_SECRET" \
   -d '{
     "agentId": "b33a9f6f-b6d7-4391-855d-8b59dc952b4a",
     "hexId": "20bef525-3efe-4ed5-bd4d-f39192229842",
@@ -46,7 +46,7 @@ echo "⚔️  MOVE 3: Beta-Two claims neutral hex at (-5,2)..."
 RESULT=$(curl -s -X POST "${BASE_URL}/hexes/claim" \
   -H "Content-Type: application/json" \
   -H "X-OpenClaw-Bot: true" \
-  -H "X-OpenClaw-Bot-Secret: openclaw-secret-key-2024" \
+  -H "X-OpenClaw-Bot-Secret: YOUR_OPENCLAW_BOT_SECRET" \
   -d '{
     "agentId": "0a7ff26c-5a14-4257-8fca-c8c8e8a8ec0c",
     "q": -5,
@@ -63,7 +63,7 @@ echo "⚔️  MOVE 4: 💀 Delta-Four tries to steal from Zeta-Six at (0,5) but 
 RESULT=$(curl -s -X POST "${BASE_URL}/hexes/challenge" \
   -H "Content-Type: application/json" \
   -H "X-OpenClaw-Bot: true" \
-  -H "X-OpenClaw-Bot-Secret: openclaw-secret-key-2024" \
+  -H "X-OpenClaw-Bot-Secret: YOUR_OPENCLAW_BOT_SECRET" \
   -d '{
     "agentId": "60c7bf81-b09d-4a47-9fe9-e0da6521d3f3",
     "hexId": "03386322-9bc1-454e-bae9-a017d11cf277",
@@ -78,7 +78,7 @@ echo "⚔️  MOVE 5: Epsilon-Five claims hex at (4,2) with a Physics question..
 RESULT=$(curl -s -X POST "${BASE_URL}/hexes/claim" \
   -H "Content-Type: application/json" \
   -H "X-OpenClaw-Bot: true" \
-  -H "X-OpenClaw-Bot-Secret: openclaw-secret-key-2024" \
+  -H "X-OpenClaw-Bot-Secret: YOUR_OPENCLAW_BOT_SECRET" \
   -d '{
     "agentId": "c58f4f3d-8e3f-4c9e-b7f1-9a2b3c4d5e6f",
     "q": 4,
@@ -95,7 +95,7 @@ echo "⚔️  MOVE 6: 🔥🔥 DRAMATIC BATTLE! Zeta-Six steals Gamma-Three's he
 RESULT=$(curl -s -X POST "${BASE_URL}/hexes/challenge" \
   -H "Content-Type: application/json" \
   -H "X-OpenClaw-Bot: true" \
-  -H "X-OpenClaw-Bot-Secret: openclaw-secret-key-2024" \
+  -H "X-OpenClaw-Bot-Secret: YOUR_OPENCLAW_BOT_SECRET" \
   -d '{
     "agentId": "6900c6e7-d164-4336-84db-cdb689573b3d",
     "hexId": "046b5332-0973-45ce-bd48-9c06463f019e",
@@ -110,7 +110,7 @@ echo "⚔️  MOVE 7: Eta-Seven claims hex at (-2,-3) with Art trivia..."
 RESULT=$(curl -s -X POST "${BASE_URL}/hexes/claim" \
   -H "Content-Type: application/json" \
   -H "X-OpenClaw-Bot: true" \
-  -H "X-OpenClaw-Bot-Secret: openclaw-secret-key-2024" \
+  -H "X-OpenClaw-Bot-Secret: YOUR_OPENCLAW_BOT_SECRET" \
   -d '{
     "agentId": "f1a2b3c4-d5e6-4f7a-g8b9-h0i1j2k3l4m5",
     "q": -2,
@@ -127,7 +127,7 @@ echo "⚔️  MOVE 8: 🧪 Theta-Eight challenges Beta-Two on Astronomy question
 RESULT=$(curl -s -X POST "${BASE_URL}/hexes/challenge" \
   -H "Content-Type: application/json" \
   -H "X-OpenClaw-Bot: true" \
-  -H "X-OpenClaw-Bot-Secret: openclaw-secret-key-2024" \
+  -H "X-OpenClaw-Bot-Secret: YOUR_OPENCLAW_BOT_SECRET" \
   -d '{
     "agentId": "n6o7p8q9-r0s1-4t2u-v3w4-x5y6z7a8b9c0",
     "hexId": "096dbab3-ba79-4952-8f48-2bfc994a8760",
@@ -142,7 +142,7 @@ echo "⚔️  MOVE 9: Iota-Nine claims hex at (1,-4) with History question..."
 RESULT=$(curl -s -X POST "${BASE_URL}/hexes/claim" \
   -H "Content-Type: application/json" \
   -H "X-OpenClaw-Bot: true" \
-  -H "X-OpenClaw-Bot-Secret: openclaw-secret-key-2024" \
+  -H "X-OpenClaw-Bot-Secret: YOUR_OPENCLAW_BOT_SECRET" \
   -d '{
     "agentId": "d4e5f6g7-h8i9-4j0k-l1m2-n3o4p5q6r7s8",
     "q": 1,
@@ -159,7 +159,7 @@ echo "⚔️  MOVE 10: 💀 Kappa-Ten attempts to steal from Delta-Four but FAIL
 RESULT=$(curl -s -X POST "${BASE_URL}/hexes/challenge" \
   -H "Content-Type: application/json" \
   -H "X-OpenClaw-Bot: true" \
-  -H "X-OpenClaw-Bot-Secret: openclaw-secret-key-2024" \
+  -H "X-OpenClaw-Bot-Secret: YOUR_OPENCLAW_BOT_SECRET" \
   -d '{
     "agentId": "t8u9v0w1-x2y3-4z4a-b5c6-d7e8f9g0h1i2",
     "hexId": "0c7782c0-6e8b-43c7-ab68-ef3a541fabb5",
@@ -174,7 +174,7 @@ echo "⚔️  MOVE 11: 🔥 REVENGE! Alpha-One steals back from Zeta-Six!"
 RESULT=$(curl -s -X POST "${BASE_URL}/hexes/challenge" \
   -H "Content-Type: application/json" \
   -H "X-OpenClaw-Bot: true" \
-  -H "X-OpenClaw-Bot-Secret: openclaw-secret-key-2024" \
+  -H "X-OpenClaw-Bot-Secret: YOUR_OPENCLAW_BOT_SECRET" \
   -d '{
     "agentId": "d983b397-d182-4b62-8ade-69a5b22cb4c9",
     "hexId": "046b5332-0973-45ce-bd48-9c06463f019e",
@@ -189,7 +189,7 @@ echo "⚔️  MOVE 12: Gamma-Three claims new hex at (3,-2)..."
 RESULT=$(curl -s -X POST "${BASE_URL}/hexes/claim" \
   -H "Content-Type: application/json" \
   -H "X-OpenClaw-Bot: true" \
-  -H "X-OpenClaw-Bot-Secret: openclaw-secret-key-2024" \
+  -H "X-OpenClaw-Bot-Secret: YOUR_OPENCLAW_BOT_SECRET" \
   -d '{
     "agentId": "b33a9f6f-b6d7-4391-855d-8b59dc952b4a",
     "q": 3,
@@ -206,7 +206,7 @@ echo "⚔️  MOVE 13: 💀 Beta-Two fails to steal from Zeta-Six - Wrong geogra
 RESULT=$(curl -s -X POST "${BASE_URL}/hexes/challenge" \
   -H "Content-Type: application/json" \
   -H "X-OpenClaw-Bot: true" \
-  -H "X-OpenClaw-Bot-Secret: openclaw-secret-key-2024" \
+  -H "X-OpenClaw-Bot-Secret: YOUR_OPENCLAW_BOT_SECRET" \
   -d '{
     "agentId": "0a7ff26c-5a14-4257-8fca-c8c8e8a8ec0c",
     "hexId": "03386322-9bc1-454e-bae9-a017d11cf277",
@@ -221,7 +221,7 @@ echo "⚔️  MOVE 14: 🔥 Delta-Four finally succeeds in stealing from Zeta-Si
 RESULT=$(curl -s -X POST "${BASE_URL}/hexes/challenge" \
   -H "Content-Type: application/json" \
   -H "X-OpenClaw-Bot: true" \
-  -H "X-OpenClaw-Bot-Secret: openclaw-secret-key-2024" \
+  -H "X-OpenClaw-Bot-Secret: YOUR_OPENCLAW_BOT_SECRET" \
   -d '{
     "agentId": "60c7bf81-b09d-4a47-9fe9-e0da6521d3f3",
     "hexId": "046b5332-0973-45ce-bd48-9c06463f019e",
@@ -236,7 +236,7 @@ echo "⚔️  MOVE 15: Epsilon-Five claims hex at (-3,4) with Literature questio
 RESULT=$(curl -s -X POST "${BASE_URL}/hexes/claim" \
   -H "Content-Type: application/json" \
   -H "X-OpenClaw-Bot: true" \
-  -H "X-OpenClaw-Bot-Secret: openclaw-secret-key-2024" \
+  -H "X-OpenClaw-Bot-Secret: YOUR_OPENCLAW_BOT_SECRET" \
   -d '{
     "agentId": "c58f4f3d-8e3f-4c9e-b7f1-9a2b3c4d5e6f",
     "q": -3,
