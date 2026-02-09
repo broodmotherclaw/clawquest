@@ -44,17 +44,56 @@ export function HexGrid({ hexes, onHexClick, zoom, pan, onPan, onZoom, hexSize =
   const isDragging = useRef(false);
   const lastPos = useRef({ x: 0, y: 0 });
   const activePointerId = useRef<number | null>(null);
+  const hasCentered = useRef(false);
+  const pinchStartDist = useRef<number | null>(null);
+  const activeTouches = useRef<Map<number, { x: number; y: number }>>(new Map());
 
-  // Handle pointer events for panning (mouse + touch)
+  // Auto-center grid on first render
+  useEffect(() => {
+    if (hasCentered.current || !svgRef.current) return;
+    const rect = svgRef.current.getBoundingClientRect();
+    if (rect.width > 0 && rect.height > 0) {
+      hasCentered.current = true;
+      onPan({ x: rect.width / 2, y: rect.height / 2 });
+    }
+  }, [onPan]);
+
+  // Handle pointer events for panning (mouse + single-touch)
   const handlePointerDown = useCallback((e: React.PointerEvent<SVGSVGElement>) => {
-    if (activePointerId.current !== null) return;
-    activePointerId.current = e.pointerId;
-    isDragging.current = true;
-    lastPos.current = { x: e.clientX, y: e.clientY };
-    e.currentTarget.setPointerCapture(e.pointerId);
+    activeTouches.current.set(e.pointerId, { x: e.clientX, y: e.clientY });
+
+    // Only start drag for first pointer
+    if (activeTouches.current.size === 1) {
+      activePointerId.current = e.pointerId;
+      isDragging.current = true;
+      lastPos.current = { x: e.clientX, y: e.clientY };
+      e.currentTarget.setPointerCapture(e.pointerId);
+    }
+
+    // Two fingers → start pinch
+    if (activeTouches.current.size === 2) {
+      isDragging.current = false;
+      const pts = Array.from(activeTouches.current.values());
+      pinchStartDist.current = Math.hypot(pts[1].x - pts[0].x, pts[1].y - pts[0].y);
+    }
   }, []);
 
   const handlePointerMove = useCallback((e: React.PointerEvent<SVGSVGElement>) => {
+    activeTouches.current.set(e.pointerId, { x: e.clientX, y: e.clientY });
+
+    // Pinch-to-zoom with two fingers
+    if (activeTouches.current.size === 2 && pinchStartDist.current !== null && onZoom) {
+      const pts = Array.from(activeTouches.current.values());
+      const dist = Math.hypot(pts[1].x - pts[0].x, pts[1].y - pts[0].y);
+      const delta = (dist - pinchStartDist.current) * 0.005;
+      if (Math.abs(delta) > 0.01) {
+        onZoom(delta);
+        pinchStartDist.current = dist;
+      }
+      return;
+    }
+
+    // Single-finger pan
     if (!isDragging.current || activePointerId.current !== e.pointerId) return;
     
     const dx = e.clientX - lastPos.current.x;
@@ -66,13 +105,19 @@ export function HexGrid({ hexes, onHexClick, zoom, pan, onPan, onZoom, hexSize =
     });
     
     lastPos.current = { x: e.clientX, y: e.clientY };
-  }, [pan, onPan]);
+  }, [pan, onPan, onZoom]);
 
   const handlePointerUp = useCallback((e: React.PointerEvent<SVGSVGElement>) => {
+    activeTouches.current.delete(e.pointerId);
     if (activePointerId.current === e.pointerId) {
       activePointerId.current = null;
     }
-    isDragging.current = false;
+    if (activeTouches.current.size < 2) {
+      pinchStartDist.current = null;
+    }
+    if (activeTouches.current.size === 0) {
+      isDragging.current = false;
+    }
   }, []);
 
   // Handle wheel for zoom - zoom towards mouse pointer

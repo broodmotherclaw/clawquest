@@ -202,23 +202,23 @@ function App() {
     );
   }
 
-  const appStyle = {
+  const appStyle: React.CSSProperties = {
     ...styles.app,
     ...(isMobile
       ? {
           height: 'auto',
           minHeight: 'var(--app-height)',
-          overflowY: 'auto',
-          WebkitOverflowScrolling: 'touch',
+          overflowY: 'auto' as const,
+          WebkitOverflowScrolling: 'touch' as any,
         }
       : {}),
   };
-  const headerStyle = {
+  const headerStyle: React.CSSProperties = {
     ...styles.header,
     ...(isMobile
       ? {
           height: 'auto',
-          flexDirection: 'column',
+          flexDirection: 'column' as const,
           alignItems: 'flex-start',
           padding: '12px 16px',
           gap: '12px',
@@ -265,9 +265,9 @@ function App() {
     ...styles.agentBadge,
     ...(isMobile ? { width: '100%', justifyContent: 'space-between' } : {}),
   };
-  const mainStyle = {
+  const mainStyle: React.CSSProperties = {
     ...styles.main,
-    ...(isMobile ? { flexDirection: 'column' } : {}),
+    ...(isMobile ? { flexDirection: 'column' as const } : {}),
   };
   const sidebarStyle = {
     ...styles.sidebar,
@@ -281,16 +281,16 @@ function App() {
         }
       : {}),
   };
-  const gameAreaStyle = {
+  const gameAreaStyle: React.CSSProperties = {
     ...styles.gameArea,
-    ...(isMobile ? { order: 1, minHeight: '60vh' } : {}),
+    ...(isMobile ? { order: 1, minHeight: '55vh', flex: '1 0 55vh' } : {}),
   };
-  const toolbarStyle = {
+  const toolbarStyle: React.CSSProperties = {
     ...styles.toolbar,
     ...(isMobile
       ? {
           height: 'auto',
-          flexDirection: 'column',
+          flexDirection: 'column' as const,
           alignItems: 'flex-start',
           padding: '12px 16px',
           gap: '10px',
