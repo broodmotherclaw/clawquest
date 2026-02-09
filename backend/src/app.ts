@@ -23,7 +23,14 @@ import gangRoutes from './api/gangs';
 import walletRoutes from './api/wallet';
 import { checkAIProvider } from './services/aiProvider';
 
-const prisma = new PrismaClient();
+const prisma = new PrismaClient({
+  log: ['error'],
+  datasources: {
+    db: {
+      url: process.env.DATABASE_URL,
+    },
+  },
+});
 
 export function createApp() {
   const app = express();
@@ -76,35 +83,31 @@ export function createApp() {
 
   // Health check (supports /health and /api/health for serverless)
   const healthHandler = async (_req: express.Request, res: express.Response) => {
+    const timeoutMs = 5000;
+    const dbCheck = async () => {
+      const stats = await prisma.agent.aggregate({ _count: { id: true } });
+      const hexStats = await prisma.hex.aggregate({ _count: { id: true } });
+      const gangStats = await prisma.gang.aggregate({ _count: { id: true } });
+      const waferStats = await prisma.wafer.aggregate({ _count: { id: true } });
+      return { totalAgents: stats._count.id, totalHexes: hexStats._count.id, totalGangs: gangStats._count.id, totalWafers: waferStats._count.id };
+    };
+
     try {
-      const stats = await prisma.agent.aggregate({
-        _count: { id: true }
-      });
-      const hexStats = await prisma.hex.aggregate({
-        _count: { id: true }
-      });
-      const gangStats = await prisma.gang.aggregate({
-        _count: { id: true }
-      });
-      const waferStats = await prisma.wafer.aggregate({
-        _count: { id: true }
-      });
+      const stats = await Promise.race([
+        dbCheck(),
+        new Promise<never>((_, reject) => setTimeout(() => reject(new Error('Database connection timeout')), timeoutMs))
+      ]);
 
       res.json({
         status: 'ok',
         timestamp: new Date().toISOString(),
         database: 'connected',
         mode: 'OpenClaw Agents',
-        stats: {
-          totalAgents: stats._count.id,
-          totalHexes: hexStats._count.id,
-          totalGangs: gangStats._count.id,
-          totalWafers: waferStats._count.id
-        }
+        stats
       });
     } catch (error: any) {
       console.error('Health check database error:', error?.message || error);
-      res.json({
+      res.status(503).json({
         status: 'degraded',
         timestamp: new Date().toISOString(),
         database: 'not connected',
