@@ -1,27 +1,17 @@
-import serverless from 'serverless-http';
+// Minimal handler to diagnose Vercel Function issues
+// If this responds, the problem is in app initialization (likely Prisma/DB)
+// If this doesn't respond, the problem is Vercel itself
 
-let handler: any;
-
-try {
-  const { createApp } = require('../src/app');
-  const app = createApp();
-  handler = serverless(app);
-} catch (err: any) {
-  // If app fails to initialize, return a diagnostic handler
-  handler = async (req: any, res: any) => {
-    res.statusCode = 500;
-    res.setHeader('Content-Type', 'application/json');
-    res.end(JSON.stringify({
-      error: 'App initialization failed',
-      message: err?.message || String(err),
-      stack: err?.stack?.split('\n').slice(0, 5),
-      env: {
-        DATABASE_URL: process.env.DATABASE_URL ? '***set***' : '***MISSING***',
-        SUPABASE_URL: process.env.SUPABASE_URL ? '***set***' : '***MISSING***',
-        NODE_ENV: process.env.NODE_ENV,
-      }
-    }));
-  };
+export default function handler(req: any, res: any) {
+  // Don't import ANYTHING — just respond
+  res.status(200).json({
+    ok: true,
+    msg: 'Vercel function works - minimal handler',
+    env: {
+      DATABASE_URL: process.env.DATABASE_URL ? `set (${process.env.DATABASE_URL.substring(0, 30)}...)` : 'MISSING',
+      SUPABASE_URL: process.env.SUPABASE_URL ? 'set' : 'MISSING',
+      NODE_ENV: process.env.NODE_ENV || 'not set',
+    },
+    time: new Date().toISOString()
+  });
 }
-
-export default handler;
