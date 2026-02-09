@@ -37,6 +37,9 @@ const prisma = new PrismaClient({
 export function createApp() {
   const app = express();
 
+  // Trust proxy on Vercel (required for express-rate-limit behind reverse proxy)
+  app.set('trust proxy', 1);
+
   // CORS - Allow all origins for development
   const corsOptions = {
     origin: '*',
