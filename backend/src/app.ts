@@ -1,13 +1,15 @@
 // Load environment variables FIRST (before any other imports)
-import dotenv from 'dotenv';
-import path from 'path';
-
-// Explicitly load .env from backend directory
-dotenv.config({ path: path.resolve(__dirname, '../.env') });
-
-// Debug: Log environment (remove in production)
-console.log('[ENV] Loading from:', path.resolve(__dirname, '../.env'));
-console.log('[ENV] GLM_API_KEY exists:', !!process.env.GLM_API_KEY);
+// Skip dotenv on Vercel — env vars are injected by the platform
+if (!process.env.VERCEL) {
+  try {
+    const dotenv = require('dotenv');
+    const path = require('path');
+    dotenv.config({ path: path.resolve(__dirname, '../.env') });
+    console.log('[ENV] Loading from .env file');
+  } catch (e) {
+    // dotenv not available or .env not found — that's fine on Vercel
+  }
+}
 
 import express from 'express';
 import cors from 'cors';
