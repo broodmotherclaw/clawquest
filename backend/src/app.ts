@@ -14,7 +14,7 @@ if (!process.env.VERCEL) {
 import express from 'express';
 import cors from 'cors';
 import helmet from 'helmet';
-import rateLimit from 'express-rate-limit';
+import rateLimit, { ipKeyGenerator } from 'express-rate-limit';
 import { PrismaClient } from '@prisma/client';
 import agentRoutes from './api/bots';
 import hexRoutes from './api/hexes';
@@ -33,11 +33,87 @@ const prisma = new PrismaClient({
     },
   },
 });
+const HEALTH_DB_TIMEOUT_MS = Number(process.env.HEALTH_DB_TIMEOUT_MS || 2000);
+
+function parseForwardedFor(forwardedHeader: string): string | undefined {
+  // RFC 7239: Forwarded: for=203.0.113.43, for="[2001:db8:cafe::17]:4711"
+  const match = forwardedHeader.match(/for=(?:"?\[?([^;\],"]+)\]?"?)/i);
+  if (!match?.[1]) {
+    return undefined;
+  }
+
+  const value = match[1].trim();
+  if (!value || value.toLowerCase() === 'unknown') {
+    return undefined;
+  }
+
+  const withoutPort = value.includes(':') && value.includes('.') ? value.split(':')[0] : value;
+  return withoutPort || undefined;
+}
+
+function normalizeIp(candidate: string): string | undefined {
+  const trimmed = candidate.trim().replace(/^"|"$/g, '');
+  if (!trimmed || trimmed.toLowerCase() === 'unknown') {
+    return undefined;
+  }
+
+  // [IPv6]:port -> IPv6
+  const bracketedIpv6 = trimmed.match(/^\[([a-fA-F0-9:]+)\](?::\d+)?$/);
+  if (bracketedIpv6?.[1]) {
+    return bracketedIpv6[1];
+  }
+
+  // IPv4:port -> IPv4
+  const ipv4WithPort = trimmed.match(/^(\d{1,3}(?:\.\d{1,3}){3})(?::\d+)?$/);
+  if (ipv4WithPort?.[1]) {
+    return ipv4WithPort[1];
+  }
+
+  return trimmed;
+}
+
+function getRateLimitKey(req: express.Request): string {
+  const xForwardedFor = req.headers['x-forwarded-for'];
+  const forwarded = req.headers.forwarded;
+
+  const forwardedIp = typeof xForwardedFor === 'string'
+    ? normalizeIp(xForwardedFor.split(',')[0] || '')
+    : undefined;
+  const standardForwardedIp = typeof forwarded === 'string'
+    ? normalizeIp(parseForwardedFor(forwarded) || '')
+    : undefined;
+
+  const candidateIp =
+    forwardedIp ||
+    standardForwardedIp ||
+    normalizeIp(req.ip || '') ||
+    normalizeIp(req.socket.remoteAddress || '');
+
+  if (candidateIp) {
+    return ipKeyGenerator(candidateIp);
+  }
+
+  return `fallback:${req.get('x-vercel-id') || req.get('user-agent') || 'anonymous'}`;
+}
+
+async function withTimeout<T>(promise: Promise<T>, timeoutMs: number, message: string): Promise<T> {
+  let timer: NodeJS.Timeout | undefined;
+  try {
+    return await Promise.race([
+      promise,
+      new Promise<T>((_, reject) => {
+        timer = setTimeout(() => reject(new Error(message)), timeoutMs);
+      })
+    ]);
+  } finally {
+    if (timer) {
+      clearTimeout(timer);
+    }
+  }
+}
 
 export function createApp() {
   const app = express();
-
-  // Trust proxy on Vercel (required for express-rate-limit behind reverse proxy)
   app.set('trust proxy', 1);
 
   // CORS - Allow all origins for development
@@ -67,6 +143,7 @@ export function createApp() {
   const limiter = rateLimit({
     windowMs: 1 * 60 * 1000, // 1 minute
     max: 100, // 100 requests per minute per IP
+    keyGenerator: (req) => getRateLimitKey(req),
     message: {
       success: false,
       error: 'Too many requests, please try again later.'
@@ -77,6 +154,7 @@ export function createApp() {
   const botLimiter = rateLimit({
     windowMs: 1 * 60 * 1000, // 1 minute
     max: 30, // 30 requests per minute for bot operations
+    keyGenerator: (req) => getRateLimitKey(req),
     message: {
       success: false,
       error: 'Bot rate limit exceeded. Please slow down.'
@@ -88,7 +166,6 @@ export function createApp() {
 
   // Health check (supports /health and /api/health for serverless)
   const healthHandler = async (_req: express.Request, res: express.Response) => {
-    const timeoutMs = 5000;
     const dbCheck = async () => {
       const stats = await prisma.agent.aggregate({ _count: { id: true } });
       const hexStats = await prisma.hex.aggregate({ _count: { id: true } });
@@ -98,10 +175,11 @@ export function createApp() {
     };
 
     try {
-      const stats = await Promise.race([
+      const stats = await withTimeout(
         dbCheck(),
-        new Promise<never>((_, reject) => setTimeout(() => reject(new Error('Database connection timeout')), timeoutMs))
-      ]);
+        HEALTH_DB_TIMEOUT_MS,
+        `Health check DB timeout after ${HEALTH_DB_TIMEOUT_MS}ms`
+      );
 
       res.json({
         status: 'ok',
@@ -117,7 +195,8 @@ export function createApp() {
         timestamp: new Date().toISOString(),
         database: 'not connected',
         mode: 'OpenClaw Agents',
-        error: 'Database connection failed'
+        error: 'Database connection failed',
+        details: error?.message || 'Unknown health-check error'
       });
     }
   };
