@@ -164,8 +164,48 @@ export function createApp() {
   app.use(limiter);
   app.use(express.json({ limit: '10mb' }));
 
+  // Lightweight liveness endpoint (no database dependency)
+  app.get('/api/ping', (_req: express.Request, res: express.Response) => {
+    res.json({
+      status: 'ok',
+      service: 'clawquest-api',
+      timestamp: new Date().toISOString()
+    });
+  });
+
+  // Minimal database probe to isolate connection issues quickly
+  app.get('/api/db-check', async (_req: express.Request, res: express.Response) => {
+    const startedAt = Date.now();
+    try {
+      const probe = await withTimeout(
+        prisma.$queryRaw<Array<{ ok: number }>>`SELECT 1 as ok`,
+        HEALTH_DB_TIMEOUT_MS,
+        `DB probe timeout after ${HEALTH_DB_TIMEOUT_MS}ms`
+      );
+
+      res.json({
+        status: 'ok',
+        database: 'connected',
+        durationMs: Date.now() - startedAt,
+        probe: probe?.[0] ?? null
+      });
+    } catch (error: any) {
+      console.error('[DB-CHECK] failed:', error?.message || error);
+      res.status(503).json({
+        status: 'degraded',
+        database: 'not connected',
+        durationMs: Date.now() - startedAt,
+        error: error?.message || 'Unknown db-check error'
+      });
+    }
+  });
+
   // Health check (supports /health and /api/health for serverless)
-  const healthHandler = async (_req: express.Request, res: express.Response) => {
+  const healthHandler = async (req: express.Request, res: express.Response) => {
+    const startedAt = Date.now();
+    const requestId = req.get('x-vercel-id') || `local-${Math.random().toString(36).slice(2, 10)}`;
+    console.log(`[HEALTH] start requestId=${requestId} timeoutMs=${HEALTH_DB_TIMEOUT_MS}`);
+
     const dbCheck = async () => {
       const stats = await prisma.agent.aggregate({ _count: { id: true } });
       const hexStats = await prisma.hex.aggregate({ _count: { id: true } });
@@ -186,15 +226,18 @@ export function createApp() {
         timestamp: new Date().toISOString(),
         database: 'connected',
         mode: 'OpenClaw Agents',
+        durationMs: Date.now() - startedAt,
         stats
       });
+      console.log(`[HEALTH] ok requestId=${requestId} durationMs=${Date.now() - startedAt}`);
     } catch (error: any) {
-      console.error('Health check database error:', error?.message || error);
+      console.error(`[HEALTH] error requestId=${requestId} durationMs=${Date.now() - startedAt}:`, error?.message || error);
       res.status(503).json({
         status: 'degraded',
         timestamp: new Date().toISOString(),
         database: 'not connected',
         mode: 'OpenClaw Agents',
+        durationMs: Date.now() - startedAt,
         error: 'Database connection failed',
         details: error?.message || 'Unknown health-check error'
       });
