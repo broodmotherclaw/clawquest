@@ -11,13 +11,16 @@ function setCors(res: ServerResponse) {
   );
 }
 
-async function getHandler() {
+function getHandler() {
   if (wrappedHandler) return wrappedHandler;
 
-  const serverless = await import('serverless-http');
-  const { createApp } = await import('../src/app');
+  // Use precompiled app bundle to avoid expensive runtime TS transpilation in serverless.
+  // eslint-disable-next-line @typescript-eslint/no-var-requires
+  const serverless = require('serverless-http');
+  // eslint-disable-next-line @typescript-eslint/no-var-requires
+  const { createApp } = require('../dist/app');
   const app = createApp();
-  wrappedHandler = serverless.default(app);
+  wrappedHandler = serverless(app);
   return wrappedHandler;
 }
 
@@ -55,7 +58,7 @@ export default async function handler(req: IncomingMessage, res: ServerResponse)
       return;
     }
 
-    const h = await getHandler();
+    const h = getHandler();
     return h(req, res);
   } catch (err: any) {
     (res as any).statusCode = 500;
