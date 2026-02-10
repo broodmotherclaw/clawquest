@@ -81,16 +81,17 @@ jobs:
           VERCEL_GIT_COMMIT_AUTHOR_NAME: ${{ github.actor }}
           VERCEL_GIT_COMMIT_AUTHOR_EMAIL: ${{ github.actor }}@users.noreply.github.com
         run: |
+          set -euo pipefail
           echo "🚀 Deploying to Vercel..."
-          vercel --prod --scope "$VERCEL_ORG_ID" --token=${{ secrets.VERCEL_OWNCLAW }} --yes
-      
-      - name: Get deployment URL
-        id: url
-        working-directory: ./backend
-        run: |
-          DEPLOYMENT_URL=$(vercel ls --scope "$VERCEL_ORG_ID" --token=${{ secrets.VERCEL_OWNCLAW }} --prod --yes 2>/dev/null | grep -oP '(https://[^ ]+\.vercel\.app[^ ]*)' | head -1)
+          DEPLOYMENT_URL=$(
+            vercel --prod --scope "$VERCEL_ORG_ID" --token=${{ secrets.VERCEL_OWNCLAW }} --yes 2>&1 \
+              | tee /tmp/vercel-deploy.log \
+              | grep -Eo 'https://[^ ]+\.vercel\.app' \
+              | tail -1
+          )
           test -n "$DEPLOYMENT_URL"
-          echo "deployment-url=$DEPLOYMENT_URL" >> $GITHUB_OUTPUT
+          echo "deployment-url=$DEPLOYMENT_URL" >> "$GITHUB_OUTPUT"
+          echo "✅ Deployment URL: $DEPLOYMENT_URL"
       
       - name: Update environment variables
         working-directory: ./backend
@@ -124,7 +125,7 @@ jobs:
       - name: Test deployment
         working-directory: ./backend
         run: |
-          DEPLOYMENT_URL="${{ steps.url.outputs.deployment-url }}"
+          DEPLOYMENT_URL="${{ steps.deploy.outputs.deployment-url }}"
           echo "🧪 Testing deployment at $DEPLOYMENT_URL..."
 
           BYPASS_SECRET="${{ secrets.VERCEL_AUTOMATION_BYPASS_SECRET }}"
@@ -172,7 +173,7 @@ jobs:
       - name: Deployment success
         working-directory: ./backend
         run: |
-          DEPLOYMENT_URL="${{ steps.url.outputs.deployment-url }}"
+          DEPLOYMENT_URL="${{ steps.deploy.outputs.deployment-url }}"
           echo "✅ Backend deployed successfully!"
           echo "🌐 URL: $DEPLOYMENT_URL"
           echo "📊 Check deployment status at Vercel dashboard"
@@ -181,6 +182,6 @@ jobs:
         if: failure()
         working-directory: ./backend
         run: |
-          DEPLOYMENT_URL="${{ steps.url.outputs.deployment-url }}"
+          DEPLOYMENT_URL="${{ steps.deploy.outputs.deployment-url }}"
           echo "🪵 Dumping Vercel logs for $DEPLOYMENT_URL"
           vercel logs "$DEPLOYMENT_URL" --scope "$VERCEL_ORG_ID" --token=${{ secrets.VERCEL_OWNCLAW }} || true
