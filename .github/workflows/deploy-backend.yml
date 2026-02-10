@@ -48,7 +48,7 @@ jobs:
           cat > .vercel/project.json <<JSON
           {"orgId":"$VERCEL_ORG_ID","projectId":"$VERCEL_PROJECT_ID"}
           JSON
-          vercel pull --token=${{ secrets.VERCEL_OWNCLAW }} --scope "$VERCEL_ORG_ID" --yes --environment=production
+          vercel pull --cwd . --token=${{ secrets.VERCEL_OWNCLAW }} --scope "$VERCEL_ORG_ID" --yes --environment=production
 
       - name: Update environment variables (pre-deploy)
         working-directory: ./backend
@@ -63,8 +63,8 @@ jobs:
           sync_vercel_env() {
             local name="$1"
             local value="$2"
-            vercel env rm "$name" production --scope "$VERCEL_ORG_ID" --token=${{ secrets.VERCEL_OWNCLAW }} --yes >/dev/null 2>&1 || true
-            printf '%s' "$value" | vercel env add "$name" production --scope "$VERCEL_ORG_ID" --token=${{ secrets.VERCEL_OWNCLAW }}
+            vercel env rm "$name" production --cwd . --scope "$VERCEL_ORG_ID" --token=${{ secrets.VERCEL_OWNCLAW }} --yes >/dev/null 2>&1 || true
+            printf '%s' "$value" | vercel env add "$name" production --cwd . --scope "$VERCEL_ORG_ID" --token=${{ secrets.VERCEL_OWNCLAW }}
           }
 
           sync_vercel_env "DATABASE_URL" "${{ secrets.DATABASE_URL }}"
@@ -84,7 +84,7 @@ jobs:
           set -euo pipefail
           echo "🚀 Deploying to Vercel..."
           DEPLOYMENT_URL=$(
-            vercel --prod --scope "$VERCEL_ORG_ID" --token=${{ secrets.VERCEL_OWNCLAW }} --yes 2>&1 \
+            vercel --cwd . --prod --scope "$VERCEL_ORG_ID" --token=${{ secrets.VERCEL_OWNCLAW }} --yes 2>&1 \
               | tee /tmp/vercel-deploy.log \
               | grep -Eo 'https://[^ ]+\.vercel\.app' \
               | tail -1
@@ -106,8 +106,8 @@ jobs:
           sync_vercel_env() {
             local name="$1"
             local value="$2"
-            vercel env rm "$name" production --scope "$VERCEL_ORG_ID" --token=${{ secrets.VERCEL_OWNCLAW }} --yes >/dev/null 2>&1 || true
-            printf '%s' "$value" | vercel env add "$name" production --scope "$VERCEL_ORG_ID" --token=${{ secrets.VERCEL_OWNCLAW }}
+            vercel env rm "$name" production --cwd . --scope "$VERCEL_ORG_ID" --token=${{ secrets.VERCEL_OWNCLAW }} --yes >/dev/null 2>&1 || true
+            printf '%s' "$value" | vercel env add "$name" production --cwd . --scope "$VERCEL_ORG_ID" --token=${{ secrets.VERCEL_OWNCLAW }}
           }
 
           sync_vercel_env "DATABASE_URL" "${{ secrets.DATABASE_URL }}"
@@ -184,4 +184,4 @@ jobs:
         run: |
           DEPLOYMENT_URL="${{ steps.deploy.outputs.deployment-url }}"
           echo "🪵 Dumping Vercel logs for $DEPLOYMENT_URL"
-          vercel logs "$DEPLOYMENT_URL" --scope "$VERCEL_ORG_ID" --token=${{ secrets.VERCEL_OWNCLAW }} || true
+          vercel logs "$DEPLOYMENT_URL" --cwd . --scope "$VERCEL_ORG_ID" --token=${{ secrets.VERCEL_OWNCLAW }} || true
