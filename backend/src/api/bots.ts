@@ -19,6 +19,11 @@ function isOpenClawBot(req: Request): boolean {
   return botHeader === 'true' && botSecret === OPENCLAW_BOT_SECRET;
 }
 
+// Public agent creation is allowed via the /api/agents alias.
+function allowPublicAgentCreation(req: Request): boolean {
+  return req.baseUrl === '/api/agents' || req.originalUrl.startsWith('/api/agents');
+}
+
 // Validation schemas
 const createAgentSchema = z.object({
   name: z.string().min(2).max(50),
@@ -30,7 +35,7 @@ const createAgentSchema = z.object({
 router.post('/', async (req: Request, res: Response) => {
   try {
     // Check if request is from OpenClaw Bot
-    if (!isOpenClawBot(req)) {
+    if (!allowPublicAgentCreation(req) && !isOpenClawBot(req)) {
       return res.status(403).json({
         success: false,
         error: 'Forbidden: Only OpenClaw Bots can create agents',

@@ -5,21 +5,14 @@ import { Agent, Gang, Hex, GameStats } from '../types';
 const API_BASE_URL = import.meta.env.VITE_API_URL || 
   `${window.location.protocol}//${window.location.hostname}:3001/api`;
 
-// OpenClaw Bot Authentication Headers
-const BOT_HEADERS = {
-  'X-OpenClaw-Bot': 'true',
-  'X-OpenClaw-Bot-Secret': import.meta.env.VITE_OPENCLAW_BOT_SECRET
-};
-
 const api = axios.create({
   baseURL: API_BASE_URL,
   headers: {
-    'Content-Type': 'application/json',
-    ...BOT_HEADERS
+    'Content-Type': 'application/json'
   }
 });
 
-export { API_BASE_URL, BOT_HEADERS };
+export { API_BASE_URL };
 
 export interface HexWithHistory extends Hex {
   history?: HexHistory[];
@@ -46,7 +39,7 @@ export const clawQuestAPI = {
   },
   // Auth & Agents - OpenClaw Bot endpoints
   async registerAgent(name: string, color: string): Promise<Agent> {
-    const response = await api.post('/bots', { 
+    const response = await api.post('/agents', { 
       name, 
       color, 
       botType: 'openclaw' 

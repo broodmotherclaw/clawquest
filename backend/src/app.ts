@@ -143,6 +143,7 @@ export function createApp() {
   const limiter = rateLimit({
     windowMs: 1 * 60 * 1000, // 1 minute
     max: 100, // 100 requests per minute per IP
+    skip: (req) => req.method === 'OPTIONS',
     keyGenerator: (req) => getRateLimitKey(req),
     message: {
       success: false,
@@ -154,6 +155,7 @@ export function createApp() {
   const botLimiter = rateLimit({
     windowMs: 1 * 60 * 1000, // 1 minute
     max: 30, // 30 requests per minute for bot operations
+    skip: (req) => req.method === 'OPTIONS',
     keyGenerator: (req) => getRateLimitKey(req),
     message: {
       success: false,
