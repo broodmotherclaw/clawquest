@@ -39,7 +39,6 @@ jobs:
         run: npm install --global vercel@latest
       
       - name: Pull Vercel Environment
-        working-directory: ./backend
         run: |
           echo "🔧 Pulling Vercel Environment..."
           rm -rf .vercel
@@ -52,7 +51,6 @@ jobs:
           vercel pull --cwd . --token=${{ secrets.VERCEL_OWNCLAW }} --scope "$VERCEL_ORG_ID" --yes --environment=production
 
       - name: Update environment variables (pre-deploy)
-        working-directory: ./backend
         run: |
           echo "🔧 Syncing Vercel environment variables (pre-deploy)..."
 
@@ -76,7 +74,6 @@ jobs:
           
       - name: Deploy to Vercel
         id: deploy
-        working-directory: ./backend
         env:
           VERCEL_GIT_COMMIT_AUTHOR_LOGIN: ${{ github.actor }}
           VERCEL_GIT_COMMIT_AUTHOR_NAME: ${{ github.actor }}
@@ -95,7 +92,6 @@ jobs:
           echo "✅ Deployment URL: $DEPLOYMENT_URL"
       
       - name: Update environment variables
-        working-directory: ./backend
         run: |
           echo "🔧 Updating environment variables..."
 
@@ -118,13 +114,11 @@ jobs:
           sync_vercel_env "SHARED_SECRET" "${{ secrets.OPENCLAW_BOT_SECRET }}"
       
       - name: Wait for deployment
-        working-directory: ./backend
         run: |
           echo "⏳ Waiting for deployment to be ready..."
           sleep 30
       
       - name: Test deployment
-        working-directory: ./backend
         run: |
           DEPLOYMENT_URL="${{ steps.deploy.outputs.deployment-url }}"
           echo "🧪 Testing deployment at $DEPLOYMENT_URL..."
@@ -172,7 +166,6 @@ jobs:
           fi
       
       - name: Deployment success
-        working-directory: ./backend
         run: |
           DEPLOYMENT_URL="${{ steps.deploy.outputs.deployment-url }}"
           echo "✅ Backend deployed successfully!"
@@ -181,7 +174,6 @@ jobs:
 
       - name: Dump Vercel Function Logs On Failure
         if: failure()
-        working-directory: ./backend
         run: |
           DEPLOYMENT_URL="${{ steps.deploy.outputs.deployment-url }}"
           echo "🪵 Dumping Vercel logs for $DEPLOYMENT_URL"
