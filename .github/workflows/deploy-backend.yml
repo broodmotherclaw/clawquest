@@ -5,6 +5,7 @@ on:
     branches: [ main ]
     paths:
       - 'backend/**'
+      - '.github/workflows/deploy-backend.yml'
   workflow_dispatch:
 
 env:
@@ -83,12 +84,12 @@ jobs:
         run: |
           set -euo pipefail
           echo "🚀 Deploying to Vercel..."
-          DEPLOYMENT_URL=$(
-            vercel --cwd . --prod --scope "$VERCEL_ORG_ID" --token=${{ secrets.VERCEL_OWNCLAW }} --yes 2>&1 \
-              | tee /tmp/vercel-deploy.log \
-              | grep -Eo 'https://[^ ]+\.vercel\.app' \
-              | tail -1
-          )
+          DEPLOY_OUTPUT=$(vercel --cwd . --prod --scope "$VERCEL_ORG_ID" --token=${{ secrets.VERCEL_OWNCLAW }} --yes 2>&1 | tee /tmp/vercel-deploy.log)
+          DEPLOYMENT_URL=$(printf '%s\n' "$DEPLOY_OUTPUT" | tr -d '\r' | grep -Eo 'https://[A-Za-z0-9.-]+\.vercel\.app' | tail -1 || true)
+          if [ -z "$DEPLOYMENT_URL" ]; then
+            echo "⚠️ Could not parse deployment URL from deploy output; trying fallback via vercel ls..."
+            DEPLOYMENT_URL=$(vercel ls --cwd . --scope "$VERCEL_ORG_ID" --token=${{ secrets.VERCEL_OWNCLAW }} --prod --yes 2>/dev/null | tr -d '\r' | grep -Eo 'https://[A-Za-z0-9.-]+\.vercel\.app' | head -1 || true)
+          fi
           test -n "$DEPLOYMENT_URL"
           echo "deployment-url=$DEPLOYMENT_URL" >> "$GITHUB_OUTPUT"
           echo "✅ Deployment URL: $DEPLOYMENT_URL"
@@ -184,4 +185,8 @@ jobs:
         run: |
           DEPLOYMENT_URL="${{ steps.deploy.outputs.deployment-url }}"
           echo "🪵 Dumping Vercel logs for $DEPLOYMENT_URL"
-          vercel logs "$DEPLOYMENT_URL" --cwd . --scope "$VERCEL_ORG_ID" --token=${{ secrets.VERCEL_OWNCLAW }} || true
+          if [ -n "$DEPLOYMENT_URL" ]; then
+            vercel logs "$DEPLOYMENT_URL" --cwd . --scope "$VERCEL_ORG_ID" --token=${{ secrets.VERCEL_OWNCLAW }} || true
+          else
+            vercel logs --cwd . --scope "$VERCEL_ORG_ID" --token=${{ secrets.VERCEL_OWNCLAW }} || true
+          fi
