@@ -35,7 +35,15 @@ export default async function handler(req: IncomingMessage, res: ServerResponse)
     }
 
     // Lightweight liveness endpoint that does not depend on app initialization
-    if (method === 'GET' && (url === '/api/ping' || url.startsWith('/api/ping?'))) {
+    if (
+      method === 'GET' &&
+      (
+        url === '/api/ping' ||
+        url.startsWith('/api/ping?') ||
+        url === '/api/health' ||
+        url.startsWith('/api/health?')
+      )
+    ) {
       setCors(res);
       (res as any).statusCode = 200;
       (res as any).setHeader('Content-Type', 'application/json');
