@@ -14,7 +14,7 @@ jobs:
   deploy:
     runs-on: ubuntu-latest
     env:
-      RAW_DATABASE_URL: ${{ secrets.DATABASE_URL }}
+      RAW_DATABASE_URL: ${{ secrets.DATABASE_DIRECT_URL }}
       SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
     outputs:
       database_status: ${{ steps.deploy.outputs.database_status }}
@@ -36,7 +36,10 @@ jobs:
 
       - name: Normalize database URL
         run: |
-          test -n "$RAW_DATABASE_URL"
+          if [ -z "$RAW_DATABASE_URL" ]; then
+            echo "❌ Missing required secret: DATABASE_DIRECT_URL"
+            exit 1
+          fi
           test -n "$SUPABASE_URL"
           NORMALIZED_DATABASE_URL="$(node backend/scripts/normalize-db-url.js "$RAW_DATABASE_URL" "$SUPABASE_URL")"
 
