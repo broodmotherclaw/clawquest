@@ -164,6 +164,24 @@ jobs:
             fi
             exit 1
           fi
+
+          # Smoke-test data endpoints to catch handler wiring regressions.
+          # Health can pass while routed API endpoints still timeout.
+          test_endpoint() {
+            local path="$1"
+            local expected="$2"
+            local url="${DEPLOYMENT_URL}${path}"
+            local status
+            status=$(curl -sS --max-time 15 -o /dev/null -w "%{http_code}" "$url" || true)
+            if [ "$status" != "$expected" ]; then
+              echo "❌ Endpoint check failed: ${path} (expected ${expected}, got ${status})"
+              exit 1
+            fi
+            echo "✅ Endpoint check passed: ${path} (HTTP ${status})"
+          }
+
+          test_endpoint "/api/bots" "200"
+          test_endpoint "/api/hexes?offset=0&limit=1" "200"
       
       - name: Deployment success
         run: |

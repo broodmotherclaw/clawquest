@@ -16,11 +16,8 @@ function getHandler() {
 
   // Use precompiled app bundle to avoid expensive runtime TS transpilation in serverless.
   // eslint-disable-next-line @typescript-eslint/no-var-requires
-  const serverless = require('serverless-http');
-  // eslint-disable-next-line @typescript-eslint/no-var-requires
   const { createApp } = require('../dist/app');
-  const app = createApp();
-  wrappedHandler = serverless(app);
+  wrappedHandler = createApp();
   return wrappedHandler;
 }
 
