@@ -39,11 +39,37 @@ function getHexCorners(center: { x: number; y: number }, size: number): string {
   return points.join(' ');
 }
 
+function isPointInHex(px: number, py: number, center: { x: number; y: number }, size: number): boolean {
+  const vertices: Array<{ x: number; y: number }> = [];
+  for (let i = 0; i < 6; i++) {
+    const angle_deg = 60 * i - 30;
+    const angle_rad = (Math.PI / 180) * angle_deg;
+    vertices.push({
+      x: center.x + size * Math.cos(angle_rad),
+      y: center.y + size * Math.sin(angle_rad),
+    });
+  }
+
+  let inside = false;
+  for (let i = 0, j = vertices.length - 1; i < vertices.length; j = i++) {
+    const xi = vertices[i].x;
+    const yi = vertices[i].y;
+    const xj = vertices[j].x;
+    const yj = vertices[j].y;
+    const intersects = ((yi > py) !== (yj > py))
+      && (px < ((xj - xi) * (py - yi)) / ((yj - yi) || 1e-9) + xi);
+    if (intersects) inside = !inside;
+  }
+
+  return inside;
+}
+
 export function HexGrid({ hexes, onHexClick, zoom, pan, onPan, onZoom, hexSize = 25 }: HexGridProps) {
   const svgRef = useRef<SVGSVGElement>(null);
   const isDragging = useRef(false);
   const lastPos = useRef({ x: 0, y: 0 });
   const activePointerId = useRef<number | null>(null);
+  const dragDistance = useRef(0);
   const hasCentered = useRef(false);
   const pinchStartDist = useRef<number | null>(null);
   const activeTouches = useRef<Map<number, { x: number; y: number }>>(new Map());
@@ -66,6 +92,7 @@ export function HexGrid({ hexes, onHexClick, zoom, pan, onPan, onZoom, hexSize =
     if (activeTouches.current.size === 1) {
       activePointerId.current = e.pointerId;
       isDragging.current = true;
+      dragDistance.current = 0;
       lastPos.current = { x: e.clientX, y: e.clientY };
       e.currentTarget.setPointerCapture(e.pointerId);
     }
@@ -98,6 +125,7 @@ export function HexGrid({ hexes, onHexClick, zoom, pan, onPan, onZoom, hexSize =
     
     const dx = e.clientX - lastPos.current.x;
     const dy = e.clientY - lastPos.current.y;
+    dragDistance.current += Math.hypot(dx, dy);
     
     onPan({
       x: pan.x + dx,
@@ -108,8 +136,28 @@ export function HexGrid({ hexes, onHexClick, zoom, pan, onPan, onZoom, hexSize =
   }, [pan, onPan, onZoom]);
 
   const handlePointerUp = useCallback((e: React.PointerEvent<SVGSVGElement>) => {
+    const wasPrimaryPointer = activePointerId.current === e.pointerId;
+    const isTap = wasPrimaryPointer && activeTouches.current.size <= 1 && dragDistance.current <= 6;
+
+    if (isTap) {
+      const rect = e.currentTarget.getBoundingClientRect();
+      const localX = e.clientX - rect.left;
+      const localY = e.clientY - rect.top;
+      const worldX = (localX - pan.x) / zoom;
+      const worldY = (localY - pan.y) / zoom;
+
+      const tappedHex = hexes.find((hex) => {
+        const center = hexToPixel(hex.q, hex.r, hexSize);
+        return isPointInHex(worldX, worldY, center, hexSize - 1);
+      });
+
+      if (tappedHex) {
+        onHexClick(tappedHex);
+      }
+    }
+
     activeTouches.current.delete(e.pointerId);
-    if (activePointerId.current === e.pointerId) {
+    if (wasPrimaryPointer) {
       activePointerId.current = null;
     }
     if (activeTouches.current.size < 2) {
@@ -117,8 +165,9 @@ export function HexGrid({ hexes, onHexClick, zoom, pan, onPan, onZoom, hexSize =
     }
     if (activeTouches.current.size === 0) {
       isDragging.current = false;
+      dragDistance.current = 0;
     }
-  }, []);
+  }, [hexes, hexSize, onHexClick, pan.x, pan.y, zoom]);
 
   // Handle wheel for zoom - zoom towards mouse pointer
   const handleWheel = useCallback((e: React.WheelEvent) => {
@@ -193,7 +242,6 @@ export function HexGrid({ hexes, onHexClick, zoom, pan, onPan, onZoom, hexSize =
                   stroke="rgba(0, 255, 255, 0.15)"
                   strokeWidth="1"
                   style={{ cursor: 'pointer' }}
-                  onClick={() => onHexClick(hex)}
                 />
               </g>
             );
@@ -219,7 +267,6 @@ export function HexGrid({ hexes, onHexClick, zoom, pan, onPan, onZoom, hexSize =
                     cursor: 'pointer',
                     transition: 'all 0.3s ease',
                   }}
-                  onClick={() => onHexClick(hex)}
                   onMouseEnter={(e) => {
                     e.currentTarget.setAttribute('opacity', '1');
                     e.currentTarget.setAttribute('stroke-width', '2');
