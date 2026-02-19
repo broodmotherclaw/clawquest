@@ -45,17 +45,17 @@ export function normalizeSupabasePoolerDatabaseUrl(
     }
 
     const username = decodeURIComponent(parsed.username || '');
-    if (username.includes('.')) {
-      return parsed.toString();
-    }
-
     const projectRef = extractSupabaseProjectRef(supabaseUrl);
     if (!projectRef) {
       return parsed.toString();
     }
 
-    const baseUser = username || 'postgres';
+    const baseUser = (username.split('.')[0] || 'postgres').trim();
     parsed.username = `${baseUser}.${projectRef}`;
+
+    if (!parsed.searchParams.has('options')) {
+      parsed.searchParams.set('options', `project=${projectRef}`);
+    }
     return parsed.toString();
   } catch {
     return databaseUrl;

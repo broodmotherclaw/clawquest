@@ -26,8 +26,12 @@ function normalizeDatabaseUrl(rawDbUrl, rawSupabaseUrl) {
     const username = decodeURIComponent(parsed.username || '');
     const projectRef = extractProjectRef(rawSupabaseUrl);
 
-    if (projectRef && !username.includes('.')) {
-      parsed.username = `${username || 'postgres'}.${projectRef}`;
+    if (projectRef) {
+      const baseUser = (username.split('.')[0] || 'postgres').trim();
+      parsed.username = `${baseUser}.${projectRef}`;
+      if (!parsed.searchParams.has('options')) {
+        parsed.searchParams.set('options', `project=${projectRef}`);
+      }
     }
 
     return parsed.toString();
