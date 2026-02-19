@@ -1,10 +1,6 @@
-name: Deploy Database to Supabase
+name: Legacy Deploy Database to Supabase (Manual)
 
 on:
-  push:
-    branches: [ main ]
-    paths:
-      - 'backend/prisma/**'
   workflow_dispatch:
 
 env:

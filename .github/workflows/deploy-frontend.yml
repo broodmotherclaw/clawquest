@@ -1,9 +1,6 @@
-name: Deploy Frontend to GitHub Pages
+name: Legacy Deploy Frontend to GitHub Pages (Manual)
 
 on:
-  push:
-    branches:
-      - main
   workflow_dispatch:
 
 permissions:
@@ -45,6 +42,7 @@ jobs:
 
       - name: Build
         env:
+          VITE_OUT_DIR: ../docs
           VITE_API_URL: ${{ secrets.VITE_API_URL }}
         run: npm run build
 

@@ -1,11 +1,6 @@
-name: Deploy Backend to Vercel
+name: Legacy Deploy Backend to Vercel (Manual)
 
 on:
-  push:
-    branches: [ main ]
-    paths:
-      - 'backend/**'
-      - '.github/workflows/deploy-backend.yml'
   workflow_dispatch:
 
 env:

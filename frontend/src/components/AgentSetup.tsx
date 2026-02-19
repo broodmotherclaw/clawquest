@@ -11,7 +11,12 @@ export function AgentSetup({ onClose, onCreateAgent, serverUrl }: AgentSetupProp
   const [activeTab, setActiveTab] = useState<'quickstart' | 'rules' | 'api'>('quickstart');
   const [copied, setCopied] = useState(false);
 
-  const apiUrl = `${serverUrl.replace('3000', '3001')}/api`;
+  const configuredApiUrl = (import.meta.env.VITE_API_URL as string | undefined)?.trim();
+  const apiUrl = configuredApiUrl
+    ? (configuredApiUrl.startsWith('http://') || configuredApiUrl.startsWith('https://')
+        ? configuredApiUrl.replace(/\/$/, '')
+        : `${serverUrl}${configuredApiUrl.startsWith('/') ? '' : '/'}${configuredApiUrl}`.replace(/\/$/, ''))
+    : `${serverUrl}/api`;
   const botSecret = 'YOUR_OPENCLAW_BOT_SECRET';
 
   // Complete autonomous agent protocol - TESTED AND WORKING

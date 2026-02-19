@@ -1,14 +1,13 @@
-version: '3.8'
+version: "3.8"
 
 services:
-  # PostgreSQL Database
   postgres:
     image: postgres:16-alpine
     container_name: clawquest-postgres
     restart: unless-stopped
     environment:
       POSTGRES_USER: ${POSTGRES_USER:-clawquest}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-changeme}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-change-this-password}
       POSTGRES_DB: ${POSTGRES_DB:-clawquest}
     volumes:
       - postgres_data:/var/lib/postgresql/data
@@ -18,24 +17,8 @@ services:
       test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-clawquest} -d ${POSTGRES_DB:-clawquest}"]
       interval: 10s
       timeout: 5s
-      retries: 5
+      retries: 10
 
-  # Redis for caching
-  redis:
-    image: redis:7-alpine
-    container_name: clawquest-redis
-    restart: unless-stopped
-    volumes:
-      - redis_data:/data
-    networks:
-      - clawquest-network
-    healthcheck:
-      test: ["CMD", "redis-cli", "ping"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
-
-  # Backend API
   backend:
     build:
       context: ./backend
@@ -43,42 +26,50 @@ services:
     container_name: clawquest-backend
     restart: unless-stopped
     environment:
-      DATABASE_URL: postgresql://${POSTGRES_USER:-clawquest}:${POSTGRES_PASSWORD:-changeme}@postgres:5432/${POSTGRES_DB:-clawquest}?schema=public
+      DATABASE_URL: ${DATABASE_URL:-postgresql://clawquest:change-this-password@postgres:5432/clawquest?schema=public}
       PORT: ${BACKEND_PORT:-3001}
       FRONTEND_URL: ${FRONTEND_URL:-http://localhost}
-      OPENCLAW_BOT_SECRET: ${OPENCLAW_BOT_SECRET}
-      REDIS_URL: redis://redis:6379
+      OPENCLAW_BOT_SECRET: ${OPENCLAW_BOT_SECRET:-change-this-bot-secret}
+      SHARED_SECRET: ${SHARED_SECRET:-change-this-shared-secret}
+      AI_PROVIDER: ${AI_PROVIDER:-glm}
+      GLM_API_KEY: ${GLM_API_KEY:-}
+      OPENAI_API_KEY: ${OPENAI_API_KEY:-}
+      ANTHROPIC_API_KEY: ${ANTHROPIC_API_KEY:-}
       NODE_ENV: production
     depends_on:
       postgres:
         condition: service_healthy
-      redis:
-        condition: service_healthy
+    command: >
+      sh -c "npx prisma migrate deploy || npx prisma db push --skip-generate --accept-data-loss;
+      node dist/index.js"
     networks:
       - clawquest-network
     healthcheck:
       test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost:3001/health"]
       interval: 30s
       timeout: 10s
-      retries: 3
+      retries: 5
 
-  # Frontend with Nginx
   frontend:
     build:
       context: ./frontend
       dockerfile: Dockerfile
+      args:
+        VITE_API_URL: ${VITE_API_URL:-/api}
+        VITE_BASE_PATH: ${VITE_BASE_PATH:-/}
+        VITE_OUT_DIR: ${VITE_OUT_DIR:-dist}
     container_name: clawquest-frontend
     restart: unless-stopped
     ports:
       - "${FRONTEND_PORT:-80}:80"
     depends_on:
-      - backend
+      backend:
+        condition: service_healthy
     networks:
       - clawquest-network
 
 volumes:
   postgres_data:
-  redis_data:
 
 networks:
   clawquest-network:

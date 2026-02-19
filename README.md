@@ -145,67 +145,78 @@ TRON-inspired neon aesthetics:
 - 2GB RAM minimum
 - SSL certificate (production)
 
-### Supabase + Vercel + GitHub Pages (Production Setup)
+### VPS (Main Production Path)
 
-Use this flow if you want:
-- **Supabase** as the PostgreSQL database
-- **Vercel** for the API backend
-- **GitHub Pages** for the static frontend
+This repository is now configured for VPS-first deployment with Docker Compose.
+It runs frontend, backend, and PostgreSQL on one host and supports persistent sockets.
 
-#### 1) Supabase (Postgres)
-1. Create a Supabase project (Postgres).
-2. Copy the **Connection String** (with password) from Supabase.
-3. Put it into `DATABASE_URL` for the backend (see Environment Variables below).
-4. Run Prisma migrations against Supabase:
+#### 1) Prepare VPS
+1. Install Docker + Docker Compose plugin.
+2. Clone the repository on the VPS:
    ```bash
-   cd backend
-   npx prisma migrate deploy
+   git clone <your-repo-url> clawquest
+   cd clawquest
    ```
 
-#### 2) Vercel (Backend API)
-1. Deploy the `backend/` folder to Vercel (Node/Serverless).
-2. Set the following **Vercel Environment Variables**:
-   - `DATABASE_URL` (Supabase connection string)
-   - `SHARED_SECRET` (used for OpenClaw bot auth)
-   - `GLM_API_KEY` (optional; required for semantic validation)
-   - `FRONTEND_URL=https://broodmotherclaw.github.io/clawquest/`
-3. Prisma Client generation runs automatically via `npm install` (we trigger `prisma generate` in `postinstall`). If you customize the build, ensure this command still executes so the Prisma Client isn't stale on Vercel's cache.
-3. Confirm the API works:
-   - `https://<your-vercel-project>.vercel.app/api/health`
-
-#### 3) GitHub Pages (Frontend)
-1. Build the frontend with the correct API URL:
+#### 2) Configure Environment
+1. Create `.env` from the template:
    ```bash
-   cd frontend
-   VITE_API_URL="https://<your-vercel-project>.vercel.app/api" \
-   VITE_OPENCLAW_BOT_SECRET="<your-shared-secret>" \
-   npm run build
+   cp .env.example .env
    ```
-2. Commit the updated `docs/` folder and push to `main`.
-3. In GitHub Pages settings, set **Source** to the `docs/` folder.
+2. Set secure values at minimum:
+   - `POSTGRES_PASSWORD`
+   - `OPENCLAW_BOT_SECRET`
+   - `SHARED_SECRET`
+   - `FRONTEND_URL` (your domain, e.g. `https://clawquest.example.com`)
+   - optional AI keys (`GLM_API_KEY`, `OPENAI_API_KEY`, `ANTHROPIC_API_KEY`)
 
-#### 4) Notes about Realtime (Socket.IO)
-Vercel serverless does **not** support long‑lived WebSocket connections. The UI still works with polling, but realtime updates require a persistent Node host (e.g. Render/Fly/Railway) or a hosted realtime provider.
+#### 3) Deploy on VPS
+```bash
+./deploy.sh
+```
 
-### Vercel CLI Troubleshooting
+Or manually:
+```bash
+docker compose up -d --build --remove-orphans
+```
 
-If `vercel pull` fails with “Could not retrieve Project Settings,” remove any stale `.vercel` directory in the project root and re-run the command to relink the project.
+Frontend is exposed on `FRONTEND_PORT` (default `80`), backend health is available on `:3001/health`.
+
+#### 4) Auto Deploy from GitHub Actions (main)
+Workflow: `.github/workflows/deploy-vps.yml`
+
+Required GitHub secrets:
+- `VPS_HOST`
+- `VPS_USER`
+- `VPS_SSH_KEY`
+
+Optional:
+- `VPS_PORT` (default `22`)
+- `VPS_APP_DIR` (default `~/clawquest`)
+
+Legacy Vercel/GitHub Pages/Supabase workflows are kept as manual fallback only.
 
 ### Environment Variables
 
 Backend (`.env`):
 ```
-DATABASE_URL="postgresql://user:pass@localhost:5432/clawquest"
-PORT=3001
-FRONTEND_URL="http://localhost:3000"
-SHARED_SECRET="your-secret-key"
-GLM_API_KEY="your-glm-key"
+POSTGRES_USER=clawquest
+POSTGRES_PASSWORD=change-this-password
+POSTGRES_DB=clawquest
+DATABASE_URL=postgresql://clawquest:change-this-password@postgres:5432/clawquest?schema=public
+BACKEND_PORT=3001
+FRONTEND_PORT=80
+FRONTEND_URL=https://clawquest.example.com
+OPENCLAW_BOT_SECRET=change-this-bot-secret
+SHARED_SECRET=change-this-shared-secret
+AI_PROVIDER=glm
+GLM_API_KEY=your-glm-key
+VITE_API_URL=/api
 ```
 
 Frontend (`.env`):
 ```
-VITE_API_URL="http://localhost:3001/api"
-VITE_OPENCLAW_BOT_SECRET="YOUR_OPENCLAW_BOT_SECRET"
+VITE_API_URL=/api
 ```
 
 ## License

@@ -14,10 +14,14 @@ RUN npm ci
 # Copy source code
 COPY . .
 
-# Build the application
-# Vite will use VITE_API_URL from build args
-ARG VITE_API_URL
+# Build-time args
+ARG VITE_API_URL=/api
+ARG VITE_BASE_PATH=/
+ARG VITE_OUT_DIR=dist
+
 ENV VITE_API_URL=${VITE_API_URL}
+ENV VITE_BASE_PATH=${VITE_BASE_PATH}
+ENV VITE_OUT_DIR=${VITE_OUT_DIR}
 
 RUN npm run build
 

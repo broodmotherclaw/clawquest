@@ -15,12 +15,8 @@ RUN npm ci
 # Copy source code
 COPY . .
 
-# Generate Prisma client for PostgreSQL
-# Copy PostgreSQL schema as the main schema for build
-COPY prisma/schema.prisma.postgresql prisma/schema.prisma
+# Generate Prisma client and build TypeScript
 RUN npx prisma generate
-
-# Build TypeScript
 RUN npm run build
 
 # Stage 2: Production
@@ -31,18 +27,12 @@ WORKDIR /app
 # Install dependencies for health check
 RUN apk add --no-cache wget
 
-# Copy package files
+# Copy package files and Prisma schema
 COPY package*.json ./
-
-# Install production dependencies only
-RUN npm ci --only=production
-
-# Copy Prisma files
 COPY prisma ./prisma/
-COPY prisma/schema.prisma.postgresql prisma/schema.prisma
 
-# Generate Prisma client
-RUN npx prisma generate
+# Install production dependencies (postinstall generates Prisma client)
+RUN npm ci --omit=dev
 
 # Copy built files from builder
 COPY --from=builder /app/dist ./dist

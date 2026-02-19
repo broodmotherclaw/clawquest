@@ -1,9 +1,8 @@
 import axios from 'axios';
 import { Agent, Gang, Hex, GameStats } from '../types';
 
-// API URL - uses environment variable or defaults to current host
-const API_BASE_URL = import.meta.env.VITE_API_URL || 
-  `${window.location.protocol}//${window.location.hostname}:3001/api`;
+// API URL - defaults to same-origin reverse proxy on VPS.
+const API_BASE_URL = import.meta.env.VITE_API_URL || '/api';
 
 const api = axios.create({
   baseURL: API_BASE_URL,

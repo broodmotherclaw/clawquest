@@ -1,0 +1,76 @@
+name: Deploy to VPS (Main)
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+concurrency:
+  group: deploy-vps-main
+  cancel-in-progress: true
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Validate required secrets
+        run: |
+          test -n "${{ secrets.VPS_HOST }}"
+          test -n "${{ secrets.VPS_USER }}"
+          test -n "${{ secrets.VPS_SSH_KEY }}"
+
+      - name: Deploy to VPS via SSH
+        uses: appleboy/ssh-action@v1.2.2
+        with:
+          host: ${{ secrets.VPS_HOST }}
+          username: ${{ secrets.VPS_USER }}
+          key: ${{ secrets.VPS_SSH_KEY }}
+          port: ${{ secrets.VPS_PORT != '' && secrets.VPS_PORT || '22' }}
+          script_stop: true
+          script: |
+            set -euo pipefail
+
+            APP_DIR="${{ secrets.VPS_APP_DIR }}"
+            if [ -z "$APP_DIR" ]; then
+              APP_DIR="$HOME/clawquest"
+            fi
+
+            if [ ! -d "$APP_DIR" ]; then
+              echo "❌ VPS_APP_DIR not found: $APP_DIR"
+              exit 1
+            fi
+
+            cd "$APP_DIR"
+
+            if [ ! -d ".git" ]; then
+              echo "❌ $APP_DIR is not a git repository"
+              exit 1
+            fi
+
+            if [ ! -f ".env" ]; then
+              echo "❌ Missing .env in $APP_DIR"
+              echo "   Copy .env.example to .env and set production values first."
+              exit 1
+            fi
+
+            git fetch origin main
+            git checkout main
+            git pull --ff-only origin main
+
+            docker compose up -d --build --remove-orphans
+
+            for i in $(seq 1 30); do
+              STATUS=$(curl -s -o /dev/null -w "%{http_code}" http://127.0.0.1:3001/health || true)
+              if [ "$STATUS" = "200" ]; then
+                echo "✅ Backend health check passed"
+                break
+              fi
+              if [ "$i" = "30" ]; then
+                echo "❌ Backend health check failed"
+                docker compose logs --tail=120 backend || true
+                exit 1
+              fi
+              sleep 2
+            done
+
+            docker compose ps
