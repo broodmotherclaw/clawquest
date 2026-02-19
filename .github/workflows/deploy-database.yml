@@ -13,6 +13,9 @@ env:
 jobs:
   deploy:
     runs-on: ubuntu-latest
+    env:
+      RAW_DATABASE_URL: ${{ secrets.DATABASE_URL }}
+      SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
     outputs:
       database_status: ${{ steps.deploy.outputs.database_status }}
     steps:
@@ -30,11 +33,51 @@ jobs:
       - name: Install dependencies
         working-directory: ./backend
         run: npm ci
+
+      - name: Normalize database URL
+        run: |
+          test -n "$RAW_DATABASE_URL"
+          test -n "$SUPABASE_URL"
+
+          NORMALIZED_DATABASE_URL="$(node - "$RAW_DATABASE_URL" "$SUPABASE_URL" <<'NODE'
+const dbUrl = process.argv[2] || '';
+const supabaseUrl = process.argv[3] || '';
+
+function extractProjectRef(url) {
+  try {
+    const host = new URL(url).hostname;
+    return host.split('.')[0] || '';
+  } catch {
+    return '';
+  }
+}
+
+try {
+  const parsed = new URL(dbUrl);
+  const username = decodeURIComponent(parsed.username || '');
+  const projectRef = extractProjectRef(supabaseUrl);
+
+  if (
+    parsed.hostname.toLowerCase().endsWith('pooler.supabase.com') &&
+    projectRef &&
+    !username.includes('.')
+  ) {
+    parsed.username = `${username || 'postgres'}.${projectRef}`;
+    process.stdout.write(parsed.toString());
+  } else {
+    process.stdout.write(dbUrl);
+  }
+} catch {
+  process.stdout.write(dbUrl);
+}
+NODE
+          )"
+
+          test -n "$NORMALIZED_DATABASE_URL"
+          echo "DATABASE_URL=$NORMALIZED_DATABASE_URL" >> "$GITHUB_ENV"
       
       - name: Generate Prisma Client
         working-directory: ./backend
-        env:
-          DATABASE_URL: ${{ secrets.DATABASE_URL }}
         run: |
           echo "🔧 Generating Prisma Client..."
           npx prisma generate
@@ -42,8 +85,6 @@ jobs:
       - name: Push database schema
         id: deploy
         working-directory: ./backend
-        env:
-          DATABASE_URL: ${{ secrets.DATABASE_URL }}
         run: |
           echo "🚀 Pushing database schema to Supabase..."
 
@@ -57,8 +98,6 @@ jobs:
       
       - name: Initialize wafers
         working-directory: ./backend
-        env:
-          DATABASE_URL: ${{ secrets.DATABASE_URL }}
         run: |
           echo "🌟 Checking wafers..."
           # Prisma maps model Wafer to table "Wafer" and field isActive to "isActive".
@@ -86,8 +125,6 @@ jobs:
       
       - name: Verify database
         working-directory: ./backend
-        env:
-          DATABASE_URL: ${{ secrets.DATABASE_URL }}
         run: |
           echo ""
           echo "🔍 Verifying database schema..."
@@ -113,8 +150,6 @@ jobs:
       - name: Rollback on failure
         if: failure()
         working-directory: ./backend
-        env:
-          DATABASE_URL: ${{ secrets.DATABASE_URL }}
         run: |
           echo "⚠️  Migration failed. Automatic rollback disabled to prevent destructive reset."
           echo "🛠️  Please inspect logs and fix forward with a new migration/db push."

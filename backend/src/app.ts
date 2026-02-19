@@ -15,7 +15,6 @@ import express from 'express';
 import cors from 'cors';
 import helmet from 'helmet';
 import rateLimit, { ipKeyGenerator } from 'express-rate-limit';
-import { PrismaClient } from '@prisma/client';
 import agentRoutes from './api/bots';
 import hexRoutes from './api/hexes';
 import leaderboardRoutes from './api/leaderboard';
@@ -24,15 +23,8 @@ import waferRoutes from './api/wafers';
 import gangRoutes from './api/gangs';
 import walletRoutes from './api/wallet';
 import { checkAIProvider } from './services/aiProvider';
+import { prisma, getDatabaseUrlResolution } from './utils/prisma';
 
-const prisma = new PrismaClient({
-  log: ['error'],
-  datasources: {
-    db: {
-      url: process.env.DATABASE_URL,
-    },
-  },
-});
 const HEALTH_DB_TIMEOUT_MS = Number(process.env.HEALTH_DB_TIMEOUT_MS || 2000);
 
 function parseForwardedFor(forwardedHeader: string): string | undefined {
@@ -263,6 +255,8 @@ export function createApp() {
 }
 
 export async function runStartupChecks(): Promise<void> {
+  const databaseUrlResolution = getDatabaseUrlResolution();
+
   console.log('\n🔍 Running startup checks...\n');
 
   // Check AI Provider
@@ -275,7 +269,11 @@ export async function runStartupChecks(): Promise<void> {
   console.log('📋 Environment Configuration:');
   console.log(`   PORT: ${process.env.PORT || 3001}`);
   console.log(`   FRONTEND_URL: ${process.env.FRONTEND_URL || 'http://localhost:3000'}`);
-  console.log(`   DATABASE: ${process.env.DATABASE_URL?.includes('postgresql') ? 'PostgreSQL' : 'SQLite'}`);
+  console.log(`   DATABASE: ${databaseUrlResolution.url?.includes('postgresql') ? 'PostgreSQL' : 'SQLite/Unknown'}`);
+  console.log(`   DATABASE_URL_SOURCE: ${databaseUrlResolution.source}`);
+  if (databaseUrlResolution.normalizedForSupabasePooler) {
+    console.log('   DATABASE_URL: normalized for Supabase pooler username');
+  }
   console.log(`   AI_PROVIDER: ${process.env.AI_PROVIDER || 'glm (default)'}`);
   console.log(`   GLM_API_KEY: ${process.env.GLM_API_KEY ? '✅ Set' : '❌ Not set'}\n`);
 }

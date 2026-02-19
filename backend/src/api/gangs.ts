@@ -1,11 +1,10 @@
 import { Router, Request, Response } from 'express';
-import { PrismaClient } from '@prisma/client';
+import { prisma } from '../utils/prisma';
 import { emitHexUpdate } from '../realtime';
 import { generateGangLogo } from '../utils/gangLogo';
 import { getGangColor } from '../utils/gangColor';
 
 const router = Router();
-const prisma = new PrismaClient();
 
 // GET /api/gangs - Get all gangs
 router.get('/', async (req: Request, res: Response) => {

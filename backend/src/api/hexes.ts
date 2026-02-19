@@ -1,5 +1,5 @@
 import { Router, Request, Response } from 'express';
-import { PrismaClient } from '@prisma/client';
+import { prisma } from '../utils/prisma';
 import { z } from 'zod';
 import { emitHexUpdate } from '../realtime';
 import { validateAnswerWithAI } from '../services/aiProvider';
@@ -7,7 +7,6 @@ import { getGangColor } from '../utils/gangColor';
 import prizePoolService from '../services/prizePool';
 
 const router = Router();
-const prisma = new PrismaClient();
 
 type HistoryDetailsRow = {
   id: string;

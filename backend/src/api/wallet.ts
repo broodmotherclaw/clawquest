@@ -1,9 +1,8 @@
 import { Router, Request, Response } from 'express';
-import { PrismaClient } from '@prisma/client';
+import { prisma } from '../utils/prisma';
 import prizePoolService from '../services/prizePool';
 
 const router = Router();
-const prisma = new PrismaClient();
 
 // GET /api/wallet/:agentId - Get wallet balance and stats
 router.get('/:agentId', async (req: Request, res: Response) => {

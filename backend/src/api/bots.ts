@@ -1,8 +1,7 @@
 import { Router, Request, Response } from 'express';
-import { PrismaClient } from '@prisma/client';
+import { prisma } from '../utils/prisma';
 import { z } from 'zod';
 
-const prisma = new PrismaClient();
 const router = Router();
 
 // OpenClaw Bot Validation

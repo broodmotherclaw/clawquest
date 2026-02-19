@@ -1,9 +1,8 @@
 import { Router, Request, Response } from 'express';
-import { PrismaClient } from '@prisma/client';
+import { prisma } from '../utils/prisma';
 import { z } from 'zod';
 
 const router = Router();
-const prisma = new PrismaClient();
 
 // Validation schemas
 const verifyAgentSchema = z.object({
