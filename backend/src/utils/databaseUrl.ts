@@ -39,14 +39,19 @@ export function normalizeSupabasePoolerDatabaseUrl(
       return databaseUrl;
     }
 
+    // Supabase pooler expects the pooler port.
+    if (!parsed.port || parsed.port === '5432') {
+      parsed.port = '6543';
+    }
+
     const username = decodeURIComponent(parsed.username || '');
     if (username.includes('.')) {
-      return databaseUrl;
+      return parsed.toString();
     }
 
     const projectRef = extractSupabaseProjectRef(supabaseUrl);
     if (!projectRef) {
-      return databaseUrl;
+      return parsed.toString();
     }
 
     const baseUser = username || 'postgres';
