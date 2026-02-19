@@ -58,43 +58,7 @@ jobs:
           test -n "${{ secrets.SUPABASE_URL }}"
           test -n "${{ secrets.SUPABASE_ANON_KEY }}"
           test -n "${{ secrets.OPENCLAW_BOT_SECRET }}"
-
-          normalize_database_url() {
-            node - "$1" "$2" <<'NODE'
-const dbUrl = process.argv[2] || '';
-const supabaseUrl = process.argv[3] || '';
-
-function extractProjectRef(url) {
-  try {
-    const host = new URL(url).hostname;
-    return host.split('.')[0] || '';
-  } catch {
-    return '';
-  }
-}
-
-try {
-  const parsed = new URL(dbUrl);
-  const username = decodeURIComponent(parsed.username || '');
-  const projectRef = extractProjectRef(supabaseUrl);
-
-  if (
-    parsed.hostname.toLowerCase().endsWith('pooler.supabase.com') &&
-    projectRef &&
-    !username.includes('.')
-  ) {
-    parsed.username = `${username || 'postgres'}.${projectRef}`;
-    process.stdout.write(parsed.toString());
-  } else {
-    process.stdout.write(dbUrl);
-  }
-} catch {
-  process.stdout.write(dbUrl);
-}
-NODE
-          }
-
-          EFFECTIVE_DATABASE_URL="$(normalize_database_url "${{ secrets.DATABASE_URL }}" "${{ secrets.SUPABASE_URL }}")"
+          EFFECTIVE_DATABASE_URL="$(node backend/scripts/normalize-db-url.js "${{ secrets.DATABASE_URL }}" "${{ secrets.SUPABASE_URL }}")"
           test -n "$EFFECTIVE_DATABASE_URL"
 
           sync_vercel_env() {
@@ -137,43 +101,7 @@ NODE
           test -n "${{ secrets.SUPABASE_URL }}"
           test -n "${{ secrets.SUPABASE_ANON_KEY }}"
           test -n "${{ secrets.OPENCLAW_BOT_SECRET }}"
-
-          normalize_database_url() {
-            node - "$1" "$2" <<'NODE'
-const dbUrl = process.argv[2] || '';
-const supabaseUrl = process.argv[3] || '';
-
-function extractProjectRef(url) {
-  try {
-    const host = new URL(url).hostname;
-    return host.split('.')[0] || '';
-  } catch {
-    return '';
-  }
-}
-
-try {
-  const parsed = new URL(dbUrl);
-  const username = decodeURIComponent(parsed.username || '');
-  const projectRef = extractProjectRef(supabaseUrl);
-
-  if (
-    parsed.hostname.toLowerCase().endsWith('pooler.supabase.com') &&
-    projectRef &&
-    !username.includes('.')
-  ) {
-    parsed.username = `${username || 'postgres'}.${projectRef}`;
-    process.stdout.write(parsed.toString());
-  } else {
-    process.stdout.write(dbUrl);
-  }
-} catch {
-  process.stdout.write(dbUrl);
-}
-NODE
-          }
-
-          EFFECTIVE_DATABASE_URL="$(normalize_database_url "${{ secrets.DATABASE_URL }}" "${{ secrets.SUPABASE_URL }}")"
+          EFFECTIVE_DATABASE_URL="$(node backend/scripts/normalize-db-url.js "${{ secrets.DATABASE_URL }}" "${{ secrets.SUPABASE_URL }}")"
           test -n "$EFFECTIVE_DATABASE_URL"
 
           sync_vercel_env() {
