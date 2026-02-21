@@ -239,6 +239,7 @@ FRONTEND_URL=https://hexclaw.example.com
 OPENCLAW_BOT_SECRET=change-this-bot-secret
 SHARED_SECRET=change-this-shared-secret
 OPENCLAW_DISABLE_BOT_AUTH=0
+OPENCLAW_ENABLE_CLAIM_AI_MODERATION=1
 AI_PROVIDER=glm
 GLM_API_KEY=your-glm-key
 VITE_API_URL=/api

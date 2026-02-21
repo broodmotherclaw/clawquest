@@ -17,6 +17,14 @@ export interface ValidationResult {
   confidence: number;
 }
 
+export interface ClaimModerationResult {
+  isValid: boolean;
+  score: number;
+  explanation: string;
+  confidence: number;
+  flags: string[];
+}
+
 /**
  * Check if AI provider is configured correctly
  */
@@ -214,6 +222,108 @@ Evaluate if the user's answer is correct. Return JSON only.`
 }
 
 /**
+ * Validate whether a claim pair (question + answer) is legitimate for gameplay.
+ * This is used before a hex is claimed.
+ */
+export async function validateClaimPairWithAI(
+  question: string,
+  answer: string
+): Promise<ClaimModerationResult> {
+  logConfig();
+
+  const questionTrimmed = question.trim();
+  const answerTrimmed = answer.trim();
+  const { GLM_API_KEY } = getConfig();
+
+  // If no API key configured, use conservative local heuristics.
+  if (!GLM_API_KEY || GLM_API_KEY.length < 20) {
+    console.log('[AI] No valid API key configured, using fallback claim moderation');
+    return fallbackClaimModeration(questionTrimmed, answerTrimmed);
+  }
+
+  try {
+    const response = await axios.post(
+      GLM_API_URL,
+      {
+        model: 'glm-4',
+        messages: [
+          {
+            role: 'system',
+            content: `You are a strict moderator for a quiz territory game.
+
+Evaluate if a defense pair (question + expected answer) is legitimate.
+
+ALLOW only if all apply:
+1. Question is factual, objective, and has one clear expected answer.
+2. Expected answer directly matches the question.
+3. Not ambiguous, opinion-based, or open-ended.
+4. Not spam, nonsense, placeholder, or abusive.
+5. Suitable for fair challenge gameplay.
+
+REJECT examples:
+- opinion prompts ("What do you think...")
+- open ended prompts ("Explain...", "Describe...")
+- placeholders ("test", "idk", "asdf")
+- vague prompts with many possible answers
+
+Return JSON only:
+{
+  "isValid": boolean,
+  "score": number,
+  "explanation": "short reason",
+  "confidence": number,
+  "flags": ["optional", "reasons"]
+}
+
+Interpretation:
+- score 0.0-1.0
+- isValid should be true only if score >= 0.75`
+          },
+          {
+            role: 'user',
+            content: `Question: "${questionTrimmed}"
+Expected answer: "${answerTrimmed}"
+
+Evaluate legitimacy for a competitive quiz game. Return JSON only.`
+          }
+        ],
+        temperature: 0.1,
+        max_tokens: 220
+      },
+      {
+        headers: {
+          'Authorization': `Bearer ${GLM_API_KEY}`,
+          'Content-Type': 'application/json'
+        },
+        timeout: 15000
+      }
+    );
+
+    const aiContent = response.data.choices[0].message.content;
+    const jsonMatch = aiContent.match(/\{[\s\S]*?\}/);
+    if (!jsonMatch) {
+      console.warn('[AI] No JSON found in claim moderation response:', aiContent);
+      throw new Error('No JSON found in AI response');
+    }
+
+    const result = JSON.parse(jsonMatch[0]);
+    const score = Math.min(1, Math.max(0, Number(result.score) || 0));
+    const moderationResult: ClaimModerationResult = {
+      isValid: result.isValid === true && score >= 0.75,
+      score,
+      explanation: result.explanation || 'No explanation provided',
+      confidence: Math.min(1, Math.max(0, Number(result.confidence) || 0.5)),
+      flags: Array.isArray(result.flags) ? result.flags.map(String).slice(0, 8) : []
+    };
+
+    return moderationResult;
+  } catch (error: any) {
+    console.error('[AI] Claim moderation error:', error.message);
+    return fallbackClaimModeration(questionTrimmed, answerTrimmed);
+  }
+}
+
+/**
  * Fallback validation using simple string matching
  * Used when AI provider is unavailable
  */
@@ -264,6 +374,66 @@ function fallbackValidation(correctAnswer: string, userAnswer: string): Validati
   };
 }
 
+function fallbackClaimModeration(question: string, answer: string): ClaimModerationResult {
+  const q = question.toLowerCase().trim();
+  const a = answer.toLowerCase().trim();
+  const flags: string[] = [];
+  let score = 1;
+
+  if (!q || !a) {
+    return {
+      isValid: false,
+      score: 0,
+      explanation: 'Question or answer is empty',
+      confidence: 0.95,
+      flags: ['empty']
+    };
+  }
+
+  const hasLetters = /[a-zA-Z]/.test(q) && /[a-zA-Z0-9]/.test(a);
+  if (!hasLetters) {
+    flags.push('non-meaningful-content');
+    score -= 0.7;
+  }
+
+  if (/(.)\1{4,}/.test(q) || /(.)\1{4,}/.test(a)) {
+    flags.push('repetitive-spam');
+    score -= 0.5;
+  }
+
+  const placeholderTerms = ['test', 'asdf', 'qwerty', 'idk', 'n/a', 'unknown', 'lorem ipsum'];
+  if (placeholderTerms.some((term) => q.includes(term) || a.includes(term))) {
+    flags.push('placeholder-content');
+    score -= 0.6;
+  }
+
+  const openEndedPatterns = ['what do you think', 'explain', 'describe', 'why ', 'how do you feel'];
+  if (openEndedPatterns.some((pattern) => q.includes(pattern))) {
+    flags.push('open-ended-question');
+    score -= 0.45;
+  }
+
+  // Encourage concise factual answers.
+  const answerWordCount = a.split(/\s+/).filter(Boolean).length;
+  if (answerWordCount > 12) {
+    flags.push('answer-too-broad');
+    score -= 0.25;
+  }
+
+  score = Math.min(1, Math.max(0, score));
+  const isValid = score >= 0.75;
+
+  return {
+    isValid,
+    score,
+    explanation: isValid
+      ? 'Pair looks suitable for factual challenge gameplay (fallback checks)'
+      : `Pair looks unsuitable for fair gameplay (${flags.join(', ') || 'insufficient quality'})`,
+    confidence: 0.6,
+    flags
+  };
+}
+
 // Log configuration on first use (not on import)
 let hasLogged = false;
 function logConfig() {
@@ -277,5 +447,6 @@ function logConfig() {
 
 export default {
   checkAIProvider,
-  validateAnswerWithAI
+  validateAnswerWithAI,
+  validateClaimPairWithAI
 };

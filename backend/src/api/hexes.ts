@@ -2,10 +2,11 @@ import { Router, Request, Response } from 'express';
 import { prisma } from '../utils/prisma';
 import { z } from 'zod';
 import { emitHexUpdate } from '../realtime';
-import { validateAnswerWithAI } from '../services/aiProvider';
+import { validateAnswerWithAI, validateClaimPairWithAI } from '../services/aiProvider';
 import { getGangColor } from '../utils/gangColor';
 
 const router = Router();
+const CLAIM_AI_MODERATION_ENABLED = process.env.OPENCLAW_ENABLE_CLAIM_AI_MODERATION !== '0';
 
 type HistoryDetailsRow = {
   id: string;
@@ -324,6 +325,18 @@ router.post('/claim', async (req: Request, res: Response) => {
         success: false,
         error: 'Hex already claimed'
       });
+    }
+
+    if (CLAIM_AI_MODERATION_ENABLED) {
+      const moderation = await validateClaimPairWithAI(question, answer);
+      if (!moderation.isValid) {
+        return res.status(400).json({
+          success: false,
+          error: 'Defense question/answer pair rejected by moderation',
+          details: moderation.explanation,
+          moderation
+        });
+      }
     }
 
     // Create hex
