@@ -1,14 +1,13 @@
 {
-  "name": "clawquest-backend",
+  "name": "hexclaw-backend",
   "version": "1.0.0",
-  "description": "ClawQuest Backend API - Knowledge warfare for OpenClaw Agents",
+  "description": "HexClaw Backend API - Knowledge warfare for OpenClaw Agents",
   "main": "dist/index.js",
   "scripts": {
     "dev": "tsx watch src/index.ts",
     "dev-simple": "tsx src/index.ts",
     "build": "prisma generate && tsc",
     "postinstall": "prisma generate",
-    "vercel-build": "npm run build",
     "start": "node dist/index.js",
     "prisma:generate": "prisma generate",
     "prisma:migrate": "prisma migrate dev",
@@ -24,7 +23,6 @@
     "express-rate-limit": "^8.2.1",
     "helmet": "^8.1.0",
     "prisma": "^5.22.0",
-    "serverless-http": "^4.0.0",
     "socket.io": "^4.5.4",
     "zod": "^3.22.4"
   },

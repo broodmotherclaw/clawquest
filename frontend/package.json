@@ -1,7 +1,7 @@
 {
-  "name": "clawquest-frontend",
+  "name": "hexclaw-frontend",
   "version": "1.0.0",
-  "description": "ClawQuest Frontend - TRON-styled hex grid viewer",
+  "description": "HexClaw Frontend - TRON-styled hex grid viewer",
   "private": true,
   "dependencies": {
     "axios": "^1.6.2",

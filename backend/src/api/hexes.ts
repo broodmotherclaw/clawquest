@@ -4,7 +4,6 @@ import { z } from 'zod';
 import { emitHexUpdate } from '../realtime';
 import { validateAnswerWithAI } from '../services/aiProvider';
 import { getGangColor } from '../utils/gangColor';
-import prizePoolService from '../services/prizePool';
 
 const router = Router();
 
@@ -293,7 +292,7 @@ router.get('/nearby', async (req: Request, res: Response) => {
   }
 });
 
-// POST /api/hexes/claim - Claim a neutral hex (COSTS MONEY!)
+// POST /api/hexes/claim - Claim a neutral hex
 router.post('/claim', async (req: Request, res: Response) => {
   try {
     const { agentId, q, r, question, answer } = claimHexSchema.parse(req.body);
@@ -326,31 +325,6 @@ router.post('/claim', async (req: Request, res: Response) => {
         error: 'Hex already claimed'
       });
     }
-
-    // CHECK BALANCE - Claiming costs money!
-    const claimCost = prizePoolService.getClaimCost();
-    const agentWallet = await prisma.wallet.findUnique({
-      where: { agentId }
-    });
-
-    if (!agentWallet || agentWallet.balance < claimCost) {
-      return res.status(400).json({
-        success: false,
-        error: `Insufficient balance. Claiming costs ${claimCost} UDC. Please deposit more credits.`,
-        requiredBalance: claimCost,
-        currentBalance: agentWallet?.balance || 0
-      });
-    }
-
-    // Deduct claim cost
-    await prisma.wallet.update({
-      where: { agentId },
-      data: {
-        balance: {
-          decrement: claimCost
-        }
-      }
-    });
 
     // Create hex
     const hex = await prisma.hex.create({
@@ -410,11 +384,7 @@ router.post('/claim', async (req: Request, res: Response) => {
     res.json({
       success: true,
       hex,
-      score: updatedAgent.score,
-      economics: {
-        cost: claimCost,
-        note: 'Claim cost deducted from your wallet'
-      }
+      score: updatedAgent.score
     });
   } catch (error) {
     if (error instanceof z.ZodError) {
@@ -473,33 +443,6 @@ router.post('/challenge', async (req: Request, res: Response) => {
       });
     }
 
-    // Get challenge fee
-    const challengeFee = prizePoolService.getChallengeFee();
-
-    // Check if challenger has enough balance
-    const challengerWallet = await prisma.wallet.findUnique({
-      where: { agentId }
-    });
-
-    if (!challengerWallet || challengerWallet.balance < challengeFee) {
-      return res.status(400).json({
-        success: false,
-        error: `Insufficient balance. Challenge costs ${challengeFee} UDC. Please deposit more credits.`,
-        requiredBalance: challengeFee,
-        currentBalance: challengerWallet?.balance || 0
-      });
-    }
-
-    // Deduct challenge fee
-    await prisma.wallet.update({
-      where: { agentId },
-      data: {
-        balance: {
-          decrement: challengeFee
-        }
-      }
-    });
-
     // Validate answer using configured AI provider
     console.log(`[Challenge] Agent ${agentId} challenging hex ${hexId}`);
     console.log(`[Challenge] Question: "${hex.question}"`);
@@ -516,8 +459,6 @@ router.post('/challenge', async (req: Request, res: Response) => {
 
     if (validation.isValid) {
       // Answer is correct - transfer ownership
-      // NO WIN BONUS - The reward is the Hex itself (and its future Jackpot share)
-      
       const updatedHex = await prisma.hex.update({
         where: { id: hexId },
         data: {
@@ -589,26 +530,9 @@ router.post('/challenge', async (req: Request, res: Response) => {
         success: true,
         hex: updatedHex,
         score: newOwner.score,
-        validation,
-        economics: {
-          feePaid: challengeFee,
-          winBonus: 0,
-          netCost: challengeFee, // You paid 0.1, got back 0
-          note: 'You gained territory! Fee added to Season Jackpot.'
-        }
+        validation
       });
     } else {
-      // Answer is incorrect - DEFENDER GETS THE FEE!
-      // This incentivizes good defense questions
-      await prisma.wallet.update({
-        where: { agentId: hex.ownerId },
-        data: {
-          balance: {
-            increment: challengeFee
-          }
-        }
-      });
-
       const historyEntry = await prisma.hexHistory.create({
         data: {
           hexId,
@@ -625,14 +549,7 @@ router.post('/challenge', async (req: Request, res: Response) => {
       res.json({
         success: false,
         error: 'Incorrect answer',
-        validation,
-        economics: {
-          feePaid: challengeFee,
-          feeGoesTo: hex.owner?.name || 'Defender',
-          defenderEarned: challengeFee,
-          netProfit: -challengeFee,
-          note: 'Defender earned your challenge fee!'
-        }
+        validation
       });
     }
   } catch (error) {

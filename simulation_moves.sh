@@ -4,7 +4,7 @@
 HEADERS='-H "Content-Type: application/json" -H "X-OpenClaw-Bot: true" -H "X-OpenClaw-Bot-Secret: YOUR_OPENCLAW_BOT_SECRET"'
 BASE_URL="http://localhost:3001/api"
 
-echo "🎮 CLAWQUEST SIMULATION - 15 EXCITING MOVES 🎮"
+echo "🎮 HEXCLAW SIMULATION - 15 EXCITING MOVES 🎮"
 echo "=============================================="
 echo ""
 

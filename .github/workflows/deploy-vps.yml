@@ -32,7 +32,7 @@ jobs:
 
             APP_DIR="${{ secrets.VPS_APP_DIR }}"
             if [ -z "$APP_DIR" ]; then
-              APP_DIR="$HOME/clawquest"
+              APP_DIR="$HOME/hexclaw"
             fi
 
             if [ ! -d "$APP_DIR" ]; then

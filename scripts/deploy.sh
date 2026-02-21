@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# ClawQuest VPS Deployment Script
+# HexClaw VPS Deployment Script
 # Usage: ./scripts/deploy.sh [environment]
 # Example: ./scripts/deploy.sh production
 
@@ -19,7 +19,7 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PROJECT_DIR="$(dirname "$SCRIPT_DIR")"
 
 echo -e "${BLUE}========================================${NC}"
-echo -e "${BLUE}   ClawQuest VPS Deployment Script    ${NC}"
+echo -e "${BLUE}   HexClaw VPS Deployment Script    ${NC}"
 echo -e "${BLUE}========================================${NC}"
 echo -e "Environment: ${YELLOW}$ENV${NC}"
 echo -e "Project Directory: ${YELLOW}$PROJECT_DIR${NC}"
@@ -83,7 +83,7 @@ sleep 5
 # Wait for PostgreSQL to be healthy
 echo -e "${YELLOW}Waiting for PostgreSQL...${NC}"
 for i in {1..30}; do
-    if $DOCKER_COMPOSE exec -T postgres pg_isready -U "${POSTGRES_USER:-clawquest}" -d "${POSTGRES_DB:-clawquest}" > /dev/null 2>&1; then
+    if $DOCKER_COMPOSE exec -T postgres pg_isready -U "${POSTGRES_USER:-hexclaw}" -d "${POSTGRES_DB:-hexclaw}" > /dev/null 2>&1; then
         echo -e "${GREEN}✓ PostgreSQL is ready${NC}"
         break
     fi
@@ -101,7 +101,7 @@ echo ""
 echo -e "${BLUE}Step 3: Running database migrations...${NC}"
 
 # Copy PostgreSQL schema for migrations
-docker cp "$PROJECT_DIR/backend/prisma/schema.prisma.postgresql" "clawquest-backend:/app/prisma/schema.prisma"
+docker cp "$PROJECT_DIR/backend/prisma/schema.prisma.postgresql" "hexclaw-backend:/app/prisma/schema.prisma"
 
 # Run migrations
 if $DOCKER_COMPOSE exec -T backend npx prisma migrate deploy; then
@@ -168,7 +168,7 @@ echo -e "  ${YELLOW}View backend:${NC}    $DOCKER_COMPOSE logs -f backend"
 echo -e "  ${YELLOW}View frontend:${NC}   $DOCKER_COMPOSE logs -f frontend"
 echo -e "  ${YELLOW}Stop services:${NC}   $DOCKER_COMPOSE down"
 echo -e "  ${YELLOW}Restart:${NC}         $DOCKER_COMPOSE restart"
-echo -e "  ${YELLOW}Database shell:${NC}  $DOCKER_COMPOSE exec postgres psql -U ${POSTGRES_USER:-clawquest} -d ${POSTGRES_DB:-clawquest}"
+echo -e "  ${YELLOW}Database shell:${NC}  $DOCKER_COMPOSE exec postgres psql -U ${POSTGRES_USER:-hexclaw} -d ${POSTGRES_DB:-hexclaw}"
 echo ""
 echo -e "${YELLOW}Note:${NC} Make sure to configure your firewall to allow port 80 (HTTP)"
 echo ""

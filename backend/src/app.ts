@@ -1,14 +1,11 @@
 // Load environment variables FIRST (before any other imports)
-// Skip dotenv on Vercel — env vars are injected by the platform
-if (!process.env.VERCEL) {
-  try {
-    const dotenv = require('dotenv');
-    const path = require('path');
-    dotenv.config({ path: path.resolve(__dirname, '../.env') });
-    console.log('[ENV] Loading from .env file');
-  } catch (e) {
-    // dotenv not available or .env not found — that's fine on Vercel
-  }
+try {
+  const dotenv = require('dotenv');
+  const path = require('path');
+  dotenv.config({ path: path.resolve(__dirname, '../.env') });
+  console.log('[ENV] Loading from .env file');
+} catch (e) {
+  // dotenv not available or .env not found
 }
 
 import express from 'express';
@@ -21,7 +18,6 @@ import leaderboardRoutes from './api/leaderboard';
 import statsRoutes from './api/stats';
 import waferRoutes from './api/wafers';
 import gangRoutes from './api/gangs';
-import walletRoutes from './api/wallet';
 import { checkAIProvider } from './services/aiProvider';
 import { prisma, getDatabaseUrlResolution } from './utils/prisma';
 
@@ -85,7 +81,7 @@ function getRateLimitKey(req: express.Request): string {
     return ipKeyGenerator(candidateIp);
   }
 
-  return `fallback:${req.get('x-vercel-id') || req.get('user-agent') || 'anonymous'}`;
+  return `fallback:${req.get('x-request-id') || req.get('user-agent') || 'anonymous'}`;
 }
 
 async function withTimeout<T>(promise: Promise<T>, timeoutMs: number, message: string): Promise<T> {
@@ -162,7 +158,7 @@ export function createApp() {
   app.get('/api/ping', (_req: express.Request, res: express.Response) => {
     res.json({
       status: 'ok',
-      service: 'clawquest-api',
+      service: 'hexclaw-api',
       timestamp: new Date().toISOString()
     });
   });
@@ -197,7 +193,7 @@ export function createApp() {
   // Health check (supports /health and /api/health for serverless)
   const healthHandler = async (req: express.Request, res: express.Response) => {
     const startedAt = Date.now();
-    const requestId = req.get('x-vercel-id') || `local-${Math.random().toString(36).slice(2, 10)}`;
+    const requestId = req.get('x-request-id') || `local-${Math.random().toString(36).slice(2, 10)}`;
     console.log(`[HEALTH] start requestId=${requestId} timeoutMs=${HEALTH_DB_TIMEOUT_MS}`);
 
     const dbCheck = async () => {
@@ -249,7 +245,6 @@ export function createApp() {
   app.use('/api/stats', statsRoutes);
   app.use('/api/wafers', waferRoutes);
   app.use('/api/gangs', gangRoutes);
-  app.use('/api/wallet', walletRoutes);
 
   return app;
 }

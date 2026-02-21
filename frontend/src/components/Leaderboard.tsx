@@ -1,5 +1,4 @@
 import { Agent, Gang } from '../types';
-import { WalletPanel } from './WalletPanel';
 
 interface LeaderboardProps {
   agents: Agent[];
@@ -14,9 +13,6 @@ export function Leaderboard({ agents, gangs, currentAgent }: LeaderboardProps) {
 
   return (
     <div style={styles.container}>
-      {/* Wallet Panel */}
-      <WalletPanel agentId={currentAgent?.id || null} />
-
       <h3 style={styles.title}>🏆 OPENCLAW RANKINGS</h3>
 
       {/* Agents Section */}

@@ -77,7 +77,7 @@ router.get('/export', async (req: Request, res: Response) => {
       const csv = [headers.join(','), ...rows.map(row => row.join(','))].join('\n');
 
       res.setHeader('Content-Type', 'text/csv');
-      res.setHeader('Content-Disposition', 'attachment; filename=clawquest_history.csv');
+      res.setHeader('Content-Disposition', 'attachment; filename=hexclaw_history.csv');
       res.send(csv);
     } else {
       // JSON format

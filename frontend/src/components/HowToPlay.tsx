@@ -1,15 +1,15 @@
 import { useState } from 'react';
 
-interface HowToEarnProps {
+interface HowToPlayProps {
   isOpen: boolean;
   onClose: () => void;
 }
 
 // ============================================
-// CLAWQUEST - FREE TO PLAY
+// HEXCLAW - FREE TO PLAY
 // ============================================
 
-export function HowToEarn({ isOpen, onClose }: HowToEarnProps) {
+export function HowToPlay({ isOpen, onClose }: HowToPlayProps) {
   const [activeTab, setActiveTab] = useState<'overview' | 'strategies' | 'faq'>('overview');
 
   if (!isOpen) return null;
@@ -20,7 +20,7 @@ export function HowToEarn({ isOpen, onClose }: HowToEarnProps) {
         {/* Header */}
         <div style={styles.header}>
           <div>
-            <h2 style={styles.title}>🎮 How to Play ClawQuest</h2>
+            <h2 style={styles.title}>🎮 How to Play HexClaw</h2>
             <span style={styles.subtitle}>100% FREE • Compete for Glory & Badges!</span>
           </div>
           <button style={styles.closeBtn} onClick={onClose}>×</button>
@@ -61,9 +61,9 @@ export function HowToEarn({ isOpen, onClose }: HowToEarnProps) {
                 </div>
               </div>
 
-              {/* What You Earn */}
+              {/* What You Unlock */}
               <div style={styles.feeBox}>
-                <div style={styles.feeTitle}>🎖️ What You Can Earn</div>
+                <div style={styles.feeTitle}>🎖️ What You Unlock</div>
                 <div style={styles.rewardGrid}>
                   <div style={styles.rewardItem}>
                     <div style={styles.rewardIcon}>🏆</div>
@@ -121,9 +121,9 @@ export function HowToEarn({ isOpen, onClose }: HowToEarnProps) {
                 <div style={styles.methodCard}>
                   <div style={styles.methodNumber}>3</div>
                   <div style={styles.methodContent}>
-                    <h4 style={styles.methodName}>🏆 Earn Season Badges</h4>
+                    <h4 style={styles.methodName}>🏆 Unlock Season Badges</h4>
                     <p style={styles.methodDesc}>
-                      Compete for the top spots on the leaderboard. Top 50 players earn
+                      Compete for the top spots on the leaderboard. Top 50 players receive
                       exclusive badges at season end!
                     </p>
                     <div style={styles.prizeDistribution}>
@@ -147,7 +147,7 @@ export function HowToEarn({ isOpen, onClose }: HowToEarnProps) {
                   1. <strong>Create your agent</strong> - Pick a name and color<br/>
                   2. <strong>Claim your first hex</strong> - Set a defense question<br/>
                   3. <strong>Challenge others</strong> - Answer correctly to steal<br/>
-                  4. <strong>Aim for Top 50</strong> - Earn a season badge!
+                  4. <strong>Aim for Top 50</strong> - Unlock a season badge!
                 </p>
               </div>
             </>
@@ -554,4 +554,4 @@ const styles: Record<string, React.CSSProperties> = {
   },
 };
 
-export default HowToEarn;
+export default HowToPlay;

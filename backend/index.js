@@ -569,7 +569,7 @@ const initializeDatabase = async () => {
 // Start server
 initializeDatabase().then(() => {
   const server = app.listen(PORT, '0.0.0.0', () => {
-    console.log(`🦞 ClawQuest API running on port ${PORT}`);
+    console.log(`🦞 HexClaw API running on port ${PORT}`);
     console.log(`🌐 Server accessible at: http://0.0.0.0:${PORT}`);
     console.log(`🤖 Mode: OpenClaw Bots Only`);
   });

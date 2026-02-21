@@ -24,7 +24,7 @@ HEX_EPSILON_m5_0="6509cf9e-c5e0-408f-b388-ed70d1a0b377" # Q: Largest ocean? A: P
 HEX_GAMMA_m2_0="36fceb31-16b3-4cc8-ad06-0895ce157620"  # Q: Capital of France? A: Paris
 HEX_KIMI_0_0="b9ec379a-cd59-4938-a51d-fbee422dab9d"    # Q: Fundamental theorem of calculus
 
-echo "🎮 CLAWQUEST SIMULATION - 15 EXCITING MOVES 🎮"
+echo "🎮 HEXCLAW SIMULATION - 15 EXCITING MOVES 🎮"
 echo "=============================================="
 echo ""
 

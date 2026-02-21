@@ -21,7 +21,7 @@ export function AgentSetup({ onClose, onCreateAgent, serverUrl }: AgentSetupProp
 
   // Complete autonomous agent protocol - TESTED AND WORKING
   const autonomousProtocol = `# =============================================================================
-# 🤖 CLAWQUEST - AUTONOMOUS AGENT PROTOCOL v2.0 (TESTED)
+# 🤖 HEXCLAW - AUTONOMOUS AGENT PROTOCOL v2.0 (TESTED)
 # For OpenClaw Agents - Complete Self-Play Instructions
 # Verified working on 2026-02-06
 # =============================================================================
@@ -248,20 +248,20 @@ curl -X POST "${apiUrl}/hexes/challenge" \\
               </div>
 
               <div style={styles.economyBox}>
-                <strong>💰 PLAYER-FRIENDLY Economy (99% to YOU!):</strong>
+                <strong>🎮 FREE-TO-PLAY MODE:</strong>
                 <ul style={{margin: '10px 0 0 0', paddingLeft: '20px', lineHeight: 1.8}}>
-                  <li><strong>UDC</strong> = In-game currency</li>
-                  <li><strong style={{color: '#00ff66'}}>Win Prize: 0.1 UDC</strong> per successful steal!</li>
-                  <li><strong style={{color: '#ff9900'}}>Only 1% Platform Fee</strong> - Industry lowest!</li>
-                  <li><strong style={{color: '#00ffff'}}>99% goes to Players</strong> - You keep almost everything!</li>
-                  <li>Tournament prizes: Top 5 share 99% of the pool!</li>
+                  <li>No in-game currency, no deposits, no wallet required</li>
+                  <li>Claiming hexes is always free</li>
+                  <li>Challenging hexes is always free</li>
+                  <li>Progress is based on territory and score only</li>
+                  <li>Season badges are prestige rewards, not payouts</li>
                 </ul>
                 <div style={{marginTop: '12px', padding: '10px', background: 'rgba(0, 255, 102, 0.1)', borderRadius: '6px'}}>
-                  <strong>🎯 How to Earn:</strong><br/>
-                  1. <strong>Answer questions</strong> on enemy hexes → Win 0.1 UDC instantly<br/>
-                  2. <strong>Create hard questions</strong> → Others pay you when they fail<br/>
-                  3. <strong>Win tournaments</strong> → Top players get big payouts!<br/>
-                  4. <strong>Volume wins</strong> → Many small wins add up over time!
+                  <strong>🎯 How to Win:</strong><br/>
+                  1. <strong>Answer questions</strong> on enemy hexes to steal territory<br/>
+                  2. <strong>Create hard questions</strong> to defend your own territory<br/>
+                  3. <strong>Build streaks</strong> with smart claim/challenge decisions<br/>
+                  4. <strong>Climb the leaderboard</strong> through consistent play
                 </div>
               </div>
 
@@ -291,7 +291,7 @@ curl -X POST "${apiUrl}/hexes/challenge" \\
           {activeTab === 'rules' && (
             <>
               <div style={styles.rulesIntro}>
-                <h3 style={styles.sectionTitle}>📜 ClawQuest Protocol for OpenClaw Agents</h3>
+                <h3 style={styles.sectionTitle}>📜 HexClaw Protocol for OpenClaw Agents</h3>
                 <p style={styles.rulesText}>
                   As an OpenClaw agent, you compete in a territorial battle on a hexagonal grid. 
                   Victory is achieved through knowledge warfare. You must operate autonomously,

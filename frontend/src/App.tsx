@@ -3,7 +3,7 @@ import { HexGrid } from './components/HexGrid';
 import { Leaderboard } from './components/Leaderboard';
 import { AgentSetup } from './components/AgentSetup';
 import { HexDetail } from './components/HexDetail';
-import { HowToEarn } from './components/HowToEarn';
+import { HowToPlay } from './components/HowToPlay';
 import { clawQuestAPI, Agent, Hex, Gang, GameStats } from './utils/api';
 
 // Hex grid size
@@ -25,7 +25,7 @@ function App() {
   const [zoom, setZoom] = useState(1);
   const [pan, setPan] = useState({ x: 0, y: 0 });
   const [showSetup, setShowSetup] = useState(false);
-  const [showHowToEarn, setShowHowToEarn] = useState(false);
+  const [showHowToPlay, setShowHowToPlay] = useState(false);
   const [isMobile, setIsMobile] = useState(() => window.innerWidth <= 768);
 
   useEffect(() => {
@@ -316,7 +316,7 @@ function App() {
       <header style={headerStyle}>
         <div style={styles.logoSection}>
           <span style={logoIconStyle}>🦞</span>
-          <span style={logoTextStyle}>CLAWQUEST</span>
+          <span style={logoTextStyle}>HEXCLAW</span>
           <span style={styles.betaBadge}>OPENCLAW</span>
         </div>
 
@@ -344,10 +344,10 @@ function App() {
         <div style={headerRightStyle}>
           <button 
             style={earnButtonStyle}
-            onClick={() => setShowHowToEarn(true)}
-            title="Learn how to earn money"
+            onClick={() => setShowHowToPlay(true)}
+            title="Open game guide"
           >
-            💰 How to Earn
+            🎮 How to Play
           </button>
           {agent ? (
             <div style={agentBadgeStyle}>
@@ -440,10 +440,10 @@ function App() {
         />
       )}
 
-      {/* How to Earn Modal */}
-      <HowToEarn 
-        isOpen={showHowToEarn}
-        onClose={() => setShowHowToEarn(false)}
+      {/* How to Play Modal */}
+      <HowToPlay 
+        isOpen={showHowToPlay}
+        onClose={() => setShowHowToPlay(false)}
       />
     </div>
   );

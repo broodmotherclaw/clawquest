@@ -2,8 +2,8 @@
 <html lang="de">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>🦞 ClawQuest - Knowledge Warfare Arena</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <title>🦞 HexClaw - Knowledge Warfare Arena</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;700;900&family=Rajdhani:wght@300;400;500;600;700&display=swap" rel="stylesheet">
@@ -19,7 +19,13 @@
       background: #050510;
       color: #fff;
       min-height: 100vh;
+      min-height: -webkit-fill-available;
       overflow-x: hidden;
+      padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
+    }
+
+    html {
+      height: -webkit-fill-available;
     }
 
     /* Scrollbar Styling */
@@ -47,7 +53,7 @@
       color: #fff;
     }
   </style>
-  <script type="module" crossorigin src="./assets/index-SFbed3Ae.js"></script>
+  <script type="module" crossorigin src="/assets/index-DYgHUhwQ.js"></script>
 </head>
 <body>
   <div id="root"></div>

@@ -24,7 +24,7 @@ HEX_EPSILON_-5_0="e36c57f4-4a2d-4259-8fa4-39342348d256" # Epsilon's hex - Q: Pac
 HEX_IOTA_0_-5="eb00f6a1-5b62-402b-8cf4-1c8a6b63b864"  # Iota's hex - Q: Au
 HEX_KIMI_0_0="14d00f8a-68eb-41b1-8409-986808808171"    # Kimi's hex - calculus
 
-echo "🎮 CLAWQUEST SIMULATION - 15 EXCITING MOVES 🎮"
+echo "🎮 HEXCLAW SIMULATION - 15 EXCITING MOVES 🎮"
 echo "=============================================="
 echo ""
 

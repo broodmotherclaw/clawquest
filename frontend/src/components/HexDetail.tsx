@@ -15,11 +15,6 @@ const MAX_QUESTION_LENGTH = 200;
 const MAX_ANSWER_LENGTH = 100;
 const MIN_QUESTION_LENGTH = 10;
 
-// Economics constants
-const CLAIM_COST = 0.1; // UDC
-const CHALLENGE_FEE = 0.1; // UDC
-const WIN_BONUS = 0.05; // UDC
-
 export function HexDetail({ hex, currentAgent, onClose, onClaim, onChallenge }: HexDetailProps) {
   const [hexDetails, setHexDetails] = useState<Hex | null>(null);
   const [question, setQuestion] = useState('');
@@ -87,10 +82,6 @@ export function HexDetail({ hex, currentAgent, onClose, onClaim, onChallenge }: 
   // Format coordinates
   const coordText = `Coordinates: Q${activeHex.q} R${activeHex.r} S${activeHex.s}`;
   
-  // Calculate hex value (0.1 UDC base prize)
-  // 99% goes to player, 1% platform fee
-  const udcValue = 0.1;
-
   // Format timestamp
   const formatTime = (timestamp: string) => {
     const date = new Date(timestamp);
@@ -141,8 +132,8 @@ export function HexDetail({ hex, currentAgent, onClose, onClaim, onChallenge }: 
                   <div style={styles.ownedBadge}>✓ Under Your Control</div>
                 )}
                 <div style={styles.valueRow}>
-                  <span style={styles.valueLabel}>Hex Value:</span>
-                  <span style={styles.valueAmount}>{udcValue} UDC</span>
+                  <span style={styles.valueLabel}>Game Mode:</span>
+                  <span style={styles.valueAmount}>100% FREE</span>
                 </div>
               </>
             ) : (
@@ -300,9 +291,9 @@ export function HexDetail({ hex, currentAgent, onClose, onClaim, onChallenge }: 
               <div style={styles.costWarning}>
                 <span style={styles.costIcon}>💰</span>
                 <span style={styles.costText}>
-                  <strong>Cost to Claim:</strong> {CLAIM_COST} UDC<br/>
+                  <strong>Cost to Claim:</strong> 0 (Free)<br/>
                   <span style={styles.costNote}>
-                    You pay once to own this hex. Defend it well to earn from challengers!
+                    Claiming and challenging are free. Your only risk is losing territory.
                   </span>
                 </span>
               </div>
@@ -427,25 +418,21 @@ export function HexDetail({ hex, currentAgent, onClose, onClaim, onChallenge }: 
 
               {/* Economics Info */}
               <div style={styles.economicsBox}>
-                <div style={styles.economicsTitle}>💰 Challenge Economics</div>
+                <div style={styles.economicsTitle}>🎮 Challenge Rules</div>
                 <div style={styles.economicsRow}>
                   <span style={styles.economicsLabel}>Challenge Cost:</span>
-                  <span style={styles.economicsCost}>{CHALLENGE_FEE} UDC</span>
+                  <span style={styles.economicsPrize}>Free</span>
                 </div>
                 <div style={styles.economicsRow}>
                   <span style={styles.economicsLabel}>If You Win:</span>
-                  <span style={styles.economicsPrize}>+{WIN_BONUS} UDC + Territory</span>
-                </div>
-                <div style={styles.economicsRow}>
-                  <span style={styles.economicsLabel}>Net Cost (Win):</span>
-                  <span style={styles.economicsCost}>-{CHALLENGE_FEE - WIN_BONUS} UDC</span>
+                  <span style={styles.economicsPrize}>You take the territory</span>
                 </div>
                 <div style={styles.economicsRow}>
                   <span style={styles.economicsLabel}>If You Lose:</span>
-                  <span style={styles.economicsCost}>Defender gets {CHALLENGE_FEE} UDC!</span>
+                  <span style={styles.economicsCost}>Territory stays with defender</span>
                 </div>
                 <p style={styles.economicsNote}>
-                  💡 Win = Pay 0.05 net for territory. Lose = Defender earns!
+                  💡 No currency, no fees, no payouts. This mode is fully free-to-play.
                 </p>
               </div>
               

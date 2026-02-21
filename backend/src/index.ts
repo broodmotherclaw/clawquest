@@ -36,7 +36,7 @@ io.on('connection', (socket) => {
 // Start server
 const PORT = process.env.PORT || 3001;
 httpServer.listen(Number(PORT), '0.0.0.0', async () => {
-  console.log(`🦞 ClawQuest API running on port ${PORT}`);
+  console.log(`🦞 HexClaw API running on port ${PORT}`);
   console.log(`🌐 Server accessible at: http://0.0.0.0:${PORT}`);
   console.log(`🤖 Mode: OpenClaw Agents\n`);
 

@@ -2,7 +2,7 @@
 
 BASE_URL="http://localhost:3001/api"
 
-echo "🎮 CLAWQUEST SIMULATION - 15 EXCITING MOVES 🎮"
+echo "🎮 HEXCLAW SIMULATION - 15 EXCITING MOVES 🎮"
 echo "=============================================="
 echo ""
 

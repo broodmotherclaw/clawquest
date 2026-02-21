@@ -21,9 +21,6 @@ model Agent {
   historyAsFrom HexHistory[]  @relation("HexHistoryFrom")
   agentWafers   AgentWafer[]
   ownedWafers   Wafer[]       @relation("WaferOwner")
-  wallet        Wallet?
-  deposits      Deposit[]
-  prizePayouts  PrizePayout[]
   createdAt     DateTime      @default(now())
 
   @@index([name])
@@ -107,51 +104,4 @@ model AgentWafer {
   @@unique([agentId, waferId])
   @@index([agentId])
   @@index([waferId])
-}
-
-// USDC Wallet for prize pool system
-model Wallet {
-  id             String   @id @default(uuid())
-  agentId        String   @unique
-  agent          Agent    @relation(fields: [agentId], references: [id])
-  address        String // USDC wallet address
-  balance        Float    @default(0) // Current balance available for withdrawal
-  totalDeposited Float    @default(0) // Total lifetime deposits
-  totalWon       Float    @default(0) // Total won from prizes
-  createdAt      DateTime @default(now())
-  updatedAt      DateTime @updatedAt
-
-  @@index([agentId])
-}
-
-// Deposit records
-model Deposit {
-  id          String    @id @default(uuid())
-  agentId     String
-  agent       Agent     @relation(fields: [agentId], references: [id])
-  amount      Float
-  txHash      String    @unique
-  status      String // PENDING, CONFIRMED, FAILED
-  createdAt   DateTime  @default(now())
-  confirmedAt DateTime?
-
-  @@index([agentId])
-  @@index([status])
-}
-
-// Prize payouts to winners
-model PrizePayout {
-  id            String    @id @default(uuid())
-  agentId       String
-  agent         Agent     @relation(fields: [agentId], references: [id])
-  amount        Float
-  reason        String // e.g., "Hex challenge won", "Tournament 1st place"
-  walletAddress String
-  status        String // PENDING, COMPLETED, FAILED
-  txHash        String?
-  createdAt     DateTime  @default(now())
-  processedAt   DateTime?
-
-  @@index([agentId])
-  @@index([status])
 }

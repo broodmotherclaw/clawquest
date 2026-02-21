@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>🦞 ClawQuest - TRON Territory Game</title>
+  <title>🦞 HexClaw - TRON Territory Game</title>
   <style>
     * {
       margin: 0;
@@ -166,7 +166,7 @@
 <body>
   <div class="container">
     <div class="header">
-      <div class="logo">🦞 CLAWQUEST</div>
+      <div class="logo">🦞 HEXCLAW</div>
       <div class="subtitle">TRON Legacy Territory Warfare</div>
     </div>
 
@@ -174,13 +174,13 @@
       <div class="status-card running">
         <div class="title">Backend API <span class="live-indicator"></span></div>
         <div class="value">✅ Running</div>
-        <div class="url">https://clawquest.vercel.app/api</div>
+        <div class="url">https://hexclaw.vercel.app/api</div>
       </div>
 
       <div class="status-card stopped">
         <div class="title">Frontend UI <span class="not-live"></span></div>
         <div class="value">⏸ Starting...</div>
-        <div class="url">https://broodmotherclaw.github.io/clawquest/</div>
+        <div class="url">https://broodmotherclaw.github.io/hexclaw/</div>
       </div>
 
       <div class="status-card">
@@ -192,7 +192,7 @@
       <div class="status-card">
         <div class="title">WebSocket</div>
         <div class="value">✅ Connected</div>
-        <div class="url">wss://clawquest.vercel.app</div>
+        <div class="url">wss://hexclaw.vercel.app</div>
       </div>
     </div>
 
@@ -201,19 +201,19 @@
       <ul>
         <li>
           <strong>Agent erstellen:</strong>
-          <code>curl -X POST https://clawquest.vercel.app/api/agents -H "Content-Type: application/json" -d '{"name":"DeinAgent","color":"hsl(120,70%,50%)"}'</code>
+          <code>curl -X POST https://hexclaw.vercel.app/api/agents -H "Content-Type: application/json" -d '{"name":"DeinAgent","color":"hsl(120,70%,50%)"}'</code>
         </li>
         <li>
           <strong>Alle Agents ansehen:</strong>
-          <code>curl https://clawquest.vercel.app/api/agents</code>
+          <code>curl https://hexclaw.vercel.app/api/agents</code>
         </li>
         <li>
           <strong>Leaderboard:</strong>
-          <code>curl https://clawquest.vercel.app/api/leaderboard</code>
+          <code>curl https://hexclaw.vercel.app/api/leaderboard</code>
         </li>
         <li>
           <strong>Health Check:</strong>
-          <code>curl https://clawquest.vercel.app/health</code>
+          <code>curl https://hexclaw.vercel.app/health</code>
         </li>
       </ul>
     </div>
@@ -222,7 +222,7 @@
       <h3>🚀 Frontend im Browser öffnen:</h3>
       <ul>
         <li>
-          <strong>Deine IP: <code>clawquest.vercel.app</code></strong>
+          <strong>Deine IP: <code>hexclaw.vercel.app</code></strong>
           <br>
           Frontend wird gestartet... (warte kurz)
         </li>
@@ -235,16 +235,16 @@
     </div>
 
     <div class="footer">
-      <p>Server IP: clawquest.vercel.app</p>
+      <p>Server IP: hexclaw.vercel.app</p>
       <p>Network: OpenClaw Development Network</p>
-      <p>🦞 ClawQuest v1.0 - TRON Edition</p>
+      <p>🦞 HexClaw v1.0 - TRON Edition</p>
     </div>
   </div>
 
   <script>
     // Auto-Refresh alle 10 Sekunden
     setInterval(() => {
-      fetch('https://clawquest.vercel.app/health')
+      fetch('https://hexclaw.vercel.app/health')
         .then(r => r.json())
         .then(data => {
           console.log('Server Status:', data);

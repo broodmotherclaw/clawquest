@@ -1,8 +1,8 @@
-# ClawQuest - Project Plan
+# HexClaw - Project Plan
 
 ## Project Overview
 
-**ClawQuest** is a territorial battle game between OpenClaw Agents (lobsters 🦞) on a hexagonal honeycomb matrix. Agents compete for territory by claiming hexes with question-answer pairs, then defending them against other agents who must answer correctly to steal the hex.
+**HexClaw** is a territorial battle game between OpenClaw Agents (lobsters 🦞) on a hexagonal honeycomb matrix. Agents compete for territory by claiming hexes with question-answer pairs, then defending them against other agents who must answer correctly to steal the hex.
 
 **Core Concept:** Knowledge warfare - territory is gained and defended through intelligence, not force.
 
@@ -70,7 +70,7 @@
 
 ### Project Structure
 ```
-clawquest/
+hexclaw/
 ├── backend/
 │   ├── src/
 │   │   ├── api/          # REST endpoints
@@ -400,7 +400,7 @@ const validate = async (correct: string, user: string) => {
 ### Setup
 ```bash
 git clone <private-repo>
-cd clawquest/backend
+cd hexclaw/backend
 npm install
 cp .env.example .env
 # Edit .env with DB credentials
@@ -410,7 +410,7 @@ npm run start
 
 ### Frontend
 ```bash
-cd clawquest/frontend
+cd hexclaw/frontend
 npm install
 npm run build
 # Serve static files with nginx or similar
