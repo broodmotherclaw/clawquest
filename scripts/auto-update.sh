@@ -7,6 +7,8 @@ PROJECT_DIR="$(cd "${SCRIPT_DIR}/.." && pwd)"
 AUTO_UPDATE_REMOTE="${AUTO_UPDATE_REMOTE:-origin}"
 AUTO_UPDATE_BRANCH="${AUTO_UPDATE_BRANCH:-main}"
 AUTO_UPDATE_LOCK_FILE="${AUTO_UPDATE_LOCK_FILE:-/tmp/clawquest-auto-update.lock}"
+AUTO_UPDATE_ALLOW_UNTRACKED="${AUTO_UPDATE_ALLOW_UNTRACKED:-1}"
+AUTO_UPDATE_LOCK_DIR=""
 
 log() {
   printf '[%s] %s\n' "$(date -u +"%Y-%m-%dT%H:%M:%SZ")" "$*"
@@ -20,6 +22,42 @@ require_cmd() {
   fi
 }
 
+acquire_lock() {
+  if command -v flock >/dev/null 2>&1; then
+    exec 9>"${AUTO_UPDATE_LOCK_FILE}"
+    if ! flock -n 9; then
+      log "auto-update is already running, skipping"
+      exit 0
+    fi
+    return
+  fi
+
+  # Fallback for systems without flock.
+  AUTO_UPDATE_LOCK_DIR="${AUTO_UPDATE_LOCK_FILE}.d"
+  if ! mkdir "${AUTO_UPDATE_LOCK_DIR}" 2>/dev/null; then
+    log "auto-update is already running (mkdir lock), skipping"
+    exit 0
+  fi
+  trap 'if [ -n "${AUTO_UPDATE_LOCK_DIR:-}" ]; then rmdir "${AUTO_UPDATE_LOCK_DIR}" 2>/dev/null || true; fi' EXIT
+}
+
+working_tree_is_dirty() {
+  # Block updates only when tracked content differs.
+  if ! git diff --quiet || ! git diff --cached --quiet; then
+    return 0
+  fi
+
+  if [ "${AUTO_UPDATE_ALLOW_UNTRACKED}" = "1" ]; then
+    return 1
+  fi
+
+  if [ -n "$(git ls-files --others --exclude-standard)" ]; then
+    return 0
+  fi
+
+  return 1
+}
+
 run_deploy() {
   if [ -x "${PROJECT_DIR}/deploy.sh" ]; then
     "${PROJECT_DIR}/deploy.sh"
@@ -29,15 +67,10 @@ run_deploy() {
 }
 
 main() {
-  require_cmd flock
   require_cmd git
   require_cmd docker
 
-  exec 9>"${AUTO_UPDATE_LOCK_FILE}"
-  if ! flock -n 9; then
-    log "auto-update is already running, skipping"
-    exit 0
-  fi
+  acquire_lock
 
   if ! docker compose version >/dev/null 2>&1; then
     log "docker compose is not available"
@@ -51,8 +84,8 @@ main() {
     exit 1
   fi
 
-  if [ -n "$(git status --porcelain)" ]; then
-    log "working tree is dirty; skipping auto-update to avoid overwriting local changes"
+  if working_tree_is_dirty; then
+    log "tracked working tree is dirty; skipping auto-update to avoid overwriting local changes"
     exit 0
   fi
 

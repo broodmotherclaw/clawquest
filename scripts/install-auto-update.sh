@@ -35,6 +35,11 @@ if [ -z "${RUN_HOME}" ]; then
   exit 1
 fi
 
+SUPPLEMENTARY_GROUPS_LINE=""
+if getent group docker >/dev/null 2>&1; then
+  SUPPLEMENTARY_GROUPS_LINE="SupplementaryGroups=docker"
+fi
+
 SERVICE_FILE="/etc/systemd/system/${SERVICE_NAME}.service"
 TIMER_FILE="/etc/systemd/system/${SERVICE_NAME}.timer"
 
@@ -49,9 +54,12 @@ ConditionPathExists=${PROJECT_DIR}/scripts/auto-update.sh
 Type=oneshot
 User=${RUN_USER}
 Group=${RUN_USER}
+${SUPPLEMENTARY_GROUPS_LINE}
 WorkingDirectory=${PROJECT_DIR}
 Environment=HOME=${RUN_HOME}
+Environment=PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
 Environment=AUTO_UPDATE_BRANCH=${BRANCH}
+Environment=AUTO_UPDATE_ALLOW_UNTRACKED=1
 ExecStart=${PROJECT_DIR}/scripts/auto-update.sh
 
 [Install]
