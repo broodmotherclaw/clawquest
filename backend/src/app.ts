@@ -309,5 +309,6 @@ export async function runStartupChecks(): Promise<void> {
     console.log('   DATABASE_URL: normalized for Supabase pooler username');
   }
   console.log(`   AI_PROVIDER: ${process.env.AI_PROVIDER || 'glm (default)'}`);
+  console.log(`   GLM_MODEL: ${process.env.GLM_MODEL || 'glm-4'}`);
   console.log(`   GLM_API_KEY: ${process.env.GLM_API_KEY ? '✅ Set' : '❌ Not set'}\n`);
 }

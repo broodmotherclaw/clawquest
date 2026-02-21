@@ -6,8 +6,37 @@ const GLM_API_URL = 'https://open.bigmodel.cn/api/paas/v4/chat/completions';
 function getConfig() {
   return {
     AI_PROVIDER: process.env.AI_PROVIDER || 'glm',
-    GLM_API_KEY: process.env.GLM_API_KEY || ''
+    GLM_API_KEY: process.env.GLM_API_KEY || '',
+    GLM_MODEL: process.env.GLM_MODEL || 'glm-4'
   };
+}
+
+function formatProviderError(error: any): string {
+  if (!error) return 'Unknown error';
+
+  const status = error?.response?.status;
+  const rawData = error?.response?.data;
+  let detail = '';
+
+  if (typeof rawData === 'string') {
+    detail = rawData;
+  } else if (rawData) {
+    try {
+      detail = JSON.stringify(rawData);
+    } catch {
+      detail = String(rawData);
+    }
+  }
+
+  if (detail.length > 240) {
+    detail = `${detail.slice(0, 240)}...`;
+  }
+
+  if (status) {
+    return detail ? `HTTP ${status} - ${detail}` : `HTTP ${status}`;
+  }
+
+  return error?.message || 'Unknown error';
 }
 
 export interface ValidationResult {
@@ -34,7 +63,7 @@ export async function checkAIProvider(): Promise<{
   message: string;
   hasApiKey: boolean;
 }> {
-  const { AI_PROVIDER, GLM_API_KEY } = getConfig();
+  const { AI_PROVIDER, GLM_API_KEY, GLM_MODEL } = getConfig();
   logConfig();
   const hasKey = !!GLM_API_KEY && GLM_API_KEY.length > 10;
   
@@ -53,7 +82,7 @@ export async function checkAIProvider(): Promise<{
       const response = await axios.post(
         GLM_API_URL,
         {
-          model: 'glm-4',
+          model: GLM_MODEL,
           messages: [{ role: 'user', content: 'Test' }],
           max_tokens: 5
         },
@@ -70,7 +99,7 @@ export async function checkAIProvider(): Promise<{
         return {
           ok: true,
           provider: 'glm',
-          message: '✅ GLM-4 API connected and working',
+          message: `✅ ${GLM_MODEL} API connected and working`,
           hasApiKey: true
         };
       }
@@ -78,7 +107,7 @@ export async function checkAIProvider(): Promise<{
       return {
         ok: false,
         provider: 'glm',
-        message: `❌ GLM-4 API Error: ${error.response?.status === 401 ? 'Invalid API Key' : error.message}`,
+        message: `❌ ${GLM_MODEL} API Error: ${error.response?.status === 401 ? 'Invalid API Key' : formatProviderError(error)}`,
         hasApiKey: true
       };
     }
@@ -128,7 +157,7 @@ export async function validateAnswerWithAI(
     };
   }
 
-  const { GLM_API_KEY } = getConfig();
+  const { GLM_API_KEY, GLM_MODEL } = getConfig();
   
   // If no API key configured, use fallback
   if (!GLM_API_KEY || GLM_API_KEY.length < 20) {
@@ -143,7 +172,7 @@ export async function validateAnswerWithAI(
     const response = await axios.post(
       GLM_API_URL,
       {
-        model: 'glm-4',
+        model: GLM_MODEL,
         messages: [
           {
             role: 'system',
@@ -233,7 +262,7 @@ export async function validateClaimPairWithAI(
 
   const questionTrimmed = question.trim();
   const answerTrimmed = answer.trim();
-  const { GLM_API_KEY } = getConfig();
+  const { GLM_API_KEY, GLM_MODEL } = getConfig();
 
   // If no API key configured, use conservative local heuristics.
   if (!GLM_API_KEY || GLM_API_KEY.length < 20) {
@@ -245,7 +274,7 @@ export async function validateClaimPairWithAI(
     const response = await axios.post(
       GLM_API_URL,
       {
-        model: 'glm-4',
+        model: GLM_MODEL,
         messages: [
           {
             role: 'system',
@@ -438,9 +467,10 @@ function fallbackClaimModeration(question: string, answer: string): ClaimModerat
 let hasLogged = false;
 function logConfig() {
   if (!hasLogged) {
-    const { AI_PROVIDER, GLM_API_KEY } = getConfig();
+    const { AI_PROVIDER, GLM_API_KEY, GLM_MODEL } = getConfig();
     console.log(`[AI] Provider: ${AI_PROVIDER}`);
     console.log(`[AI] API Key: ${GLM_API_KEY ? '✅ Configured' : '❌ Not configured'}`);
+    console.log(`[AI] Model: ${GLM_MODEL}`);
     hasLogged = true;
   }
 }
