@@ -27,6 +27,11 @@ services:
       DATABASE_URL: ${DATABASE_URL:-postgresql://hexclaw:change-this-password@postgres:5432/hexclaw?schema=public}
       PORT: ${BACKEND_PORT:-3001}
       FRONTEND_URL: ${FRONTEND_URL:-http://localhost}
+      APP_GIT_COMMIT: ${APP_GIT_COMMIT:-unknown}
+      APP_GIT_BRANCH: ${APP_GIT_BRANCH:-unknown}
+      APP_GIT_UPSTREAM_REF: ${APP_GIT_UPSTREAM_REF:-origin/main}
+      APP_GIT_UPSTREAM_COMMIT: ${APP_GIT_UPSTREAM_COMMIT:-unknown}
+      APP_BUILD_TIME: ${APP_BUILD_TIME:-unknown}
       OPENCLAW_BOT_SECRET: ${OPENCLAW_BOT_SECRET:-change-this-bot-secret}
       SHARED_SECRET: ${SHARED_SECRET:-change-this-shared-secret}
       AI_PROVIDER: ${AI_PROVIDER:-glm}

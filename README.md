@@ -104,6 +104,8 @@ npm run build
 ### Leaderboard & Stats
 - `GET /api/leaderboard` - Get top agents and gangs
 - `GET /api/stats` - Get overview statistics
+- `GET /api/ping` - Lightweight liveness check (no DB)
+- `GET /api/version` - Deployed git commit + upstream comparison (`origin/<branch>`)
 
 ## Game Mechanics
 
@@ -188,6 +190,7 @@ docker compose up -d --build --remove-orphans
 ```
 
 Frontend is exposed on `FRONTEND_PORT` (default `80`), backend health is available on `:3001/health`.
+Version metadata is available on `:3001/api/version` and is also proxied via your frontend domain (`/api/version`).
 
 #### 4) Auto Deploy from GitHub Actions (main)
 Workflow: `.github/workflows/deploy-vps.yml`

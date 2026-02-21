@@ -168,6 +168,39 @@ export function createApp() {
     });
   });
 
+  app.get('/api/version', (_req: express.Request, res: express.Response) => {
+    const commit = process.env.APP_GIT_COMMIT || 'unknown';
+    const branch = process.env.APP_GIT_BRANCH || 'unknown';
+    const upstreamRef = process.env.APP_GIT_UPSTREAM_REF || 'origin/main';
+    const upstreamCommit = process.env.APP_GIT_UPSTREAM_COMMIT || 'unknown';
+    const buildTime = process.env.APP_BUILD_TIME || null;
+
+    const hasComparableCommits = commit !== 'unknown' && upstreamCommit !== 'unknown';
+    const isUpToDate = hasComparableCommits ? commit === upstreamCommit : null;
+    const comparison = hasComparableCommits
+      ? (isUpToDate ? 'up-to-date' : 'different')
+      : 'unknown';
+
+    res.json({
+      status: 'ok',
+      service: 'hexclaw-api',
+      timestamp: new Date().toISOString(),
+      git: {
+        branch,
+        commit,
+        shortCommit: commit === 'unknown' ? 'unknown' : commit.slice(0, 12),
+        upstreamRef,
+        upstreamCommit,
+        upstreamShortCommit: upstreamCommit === 'unknown' ? 'unknown' : upstreamCommit.slice(0, 12),
+        comparison,
+        isUpToDate
+      },
+      build: {
+        builtAt: buildTime
+      }
+    });
+  });
+
   // Minimal database probe to isolate connection issues quickly
   app.get('/api/db-check', async (_req: express.Request, res: express.Response) => {
     const startedAt = Date.now();

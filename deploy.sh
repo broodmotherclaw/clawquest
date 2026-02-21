@@ -24,6 +24,32 @@ if [ ! -f ".env" ]; then
   exit 1
 fi
 
+APP_GIT_COMMIT="$(git rev-parse HEAD 2>/dev/null || echo "unknown")"
+APP_GIT_BRANCH="$(git rev-parse --abbrev-ref HEAD 2>/dev/null || echo "unknown")"
+DEFAULT_UPSTREAM_REF="origin/main"
+if [ "${APP_GIT_BRANCH}" != "unknown" ]; then
+  DEFAULT_UPSTREAM_REF="origin/${APP_GIT_BRANCH}"
+fi
+APP_GIT_UPSTREAM_REF="${APP_GIT_UPSTREAM_REF:-${DEFAULT_UPSTREAM_REF}}"
+APP_GIT_UPSTREAM_COMMIT="$(git rev-parse "${APP_GIT_UPSTREAM_REF}" 2>/dev/null || true)"
+if [ -z "${APP_GIT_UPSTREAM_COMMIT}" ]; then
+  APP_GIT_UPSTREAM_REF="origin/main"
+  APP_GIT_UPSTREAM_COMMIT="$(git rev-parse "${APP_GIT_UPSTREAM_REF}" 2>/dev/null || echo "unknown")"
+fi
+APP_BUILD_TIME="$(date -u +"%Y-%m-%dT%H:%M:%SZ")"
+
+export APP_GIT_COMMIT
+export APP_GIT_BRANCH
+export APP_GIT_UPSTREAM_REF
+export APP_GIT_UPSTREAM_COMMIT
+export APP_BUILD_TIME
+
+echo "🧾 Version metadata"
+echo "   branch: ${APP_GIT_BRANCH}"
+echo "   commit: ${APP_GIT_COMMIT}"
+echo "   upstream: ${APP_GIT_UPSTREAM_REF} (${APP_GIT_UPSTREAM_COMMIT})"
+echo "   build time: ${APP_BUILD_TIME}"
+
 echo "📦 Building and starting containers..."
 docker compose up -d --build --remove-orphans
 
