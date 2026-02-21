@@ -14,6 +14,7 @@ model Agent {
   name          String        @unique
   color         String // HSL format: "hsl(120, 70%, 50%)"
   score         Int           @default(0)
+  secret        String?       @unique // SHA-256 hash of the agent's registration secret
   gangId        String?
   gang          Gang?         @relation(fields: [gangId], references: [id])
   hexes         Hex[]
@@ -25,6 +26,7 @@ model Agent {
 
   @@index([name])
   @@index([gangId])
+  @@index([secret])
 }
 
 model Gang {
