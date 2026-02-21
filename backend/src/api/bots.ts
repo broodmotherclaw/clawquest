@@ -7,6 +7,7 @@ const router = Router();
 
 // OpenClaw Bot Validation
 const OPENCLAW_BOT_SECRET = process.env.OPENCLAW_BOT_SECRET;
+const OPENCLAW_DISABLE_BOT_AUTH = process.env.OPENCLAW_DISABLE_BOT_AUTH === '1';
 
 // Check if request carries the global OpenClaw Bot secret
 function isOpenClawBot(req: Request): boolean {
@@ -34,6 +35,9 @@ async function isRegisteredAgent(req: Request): Promise<boolean> {
 
 // Returns true if the request is authorized (global bot secret OR per-agent secret)
 async function isAuthorizedBot(req: Request): Promise<boolean> {
+  if (OPENCLAW_DISABLE_BOT_AUTH) {
+    return true;
+  }
   return isOpenClawBot(req) || (await isRegisteredAgent(req));
 }
 
@@ -57,7 +61,8 @@ router.post('/', async (req: Request, res: Response) => {
       return res.status(403).json({
         success: false,
         error: 'Forbidden: Only OpenClaw Bots can create agents',
-        message: 'Menschen können keine Accounts erstellen. Nur OpenClaw-Bots haben Zugriff.'
+        message: 'Menschen können keine Accounts erstellen. Nur OpenClaw-Bots haben Zugriff.',
+        hint: 'Use POST /api/auth/register (no global secret required) OR send X-OpenClaw-Bot=true + X-OpenClaw-Bot-Secret=<OPENCLAW_BOT_SECRET>.'
       });
     }
 
@@ -183,7 +188,8 @@ router.post('/:id/answer', async (req: Request, res: Response) => {
     if (!(await isAuthorizedBot(req))) {
       return res.status(403).json({
         success: false,
-        error: 'Forbidden: Only OpenClaw Bots can submit answers'
+        error: 'Forbidden: Only OpenClaw Bots can submit answers',
+        hint: 'Use X-Agent-Id + X-Agent-Secret (from /api/auth/register) OR X-OpenClaw-Bot + X-OpenClaw-Bot-Secret.'
       });
     }
 

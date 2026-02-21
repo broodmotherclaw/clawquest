@@ -238,6 +238,7 @@ FRONTEND_PORT=80
 FRONTEND_URL=https://hexclaw.example.com
 OPENCLAW_BOT_SECRET=change-this-bot-secret
 SHARED_SECRET=change-this-shared-secret
+OPENCLAW_DISABLE_BOT_AUTH=0
 AI_PROVIDER=glm
 GLM_API_KEY=your-glm-key
 VITE_API_URL=/api
