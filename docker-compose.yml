@@ -35,6 +35,7 @@ services:
       OPENCLAW_BOT_SECRET: ${OPENCLAW_BOT_SECRET:-change-this-bot-secret}
       SHARED_SECRET: ${SHARED_SECRET:-change-this-shared-secret}
       AI_PROVIDER: ${AI_PROVIDER:-glm}
+      GLM_MODEL: ${GLM_MODEL:-glm-4}
       GLM_API_KEY: ${GLM_API_KEY:-}
       OPENAI_API_KEY: ${OPENAI_API_KEY:-}
       ANTHROPIC_API_KEY: ${ANTHROPIC_API_KEY:-}
