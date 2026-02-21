@@ -195,6 +195,30 @@ Optional:
 - `VPS_PORT` (default `22`)
 - `VPS_APP_DIR` (default `~/hexclaw`)
 
+#### 5) Optional: Auto Update Directly on VPS (Git + Docker Rebuild)
+If you prefer polling-based updates on the server itself, use the built-in systemd timer.
+
+1. Install the updater service and timer:
+   ```bash
+   cd /opt/clawquest
+   chmod +x scripts/auto-update.sh scripts/install-auto-update.sh
+   sudo AUTO_UPDATE_USER=hex AUTO_UPDATE_BRANCH=main AUTO_UPDATE_INTERVAL_MINUTES=5 ./scripts/install-auto-update.sh
+   ```
+2. Trigger a manual run once:
+   ```bash
+   sudo systemctl start clawquest-auto-update.service
+   ```
+3. Check timer and logs:
+   ```bash
+   systemctl list-timers --all | grep clawquest-auto-update
+   journalctl -u clawquest-auto-update.service -n 200 --no-pager
+   ```
+
+Notes:
+- The updater skips deployment when no new commit exists.
+- It also skips when the working tree has local uncommitted changes.
+- Branch, user, and interval are configurable via environment variables in the install command.
+
 ### Environment Variables
 
 Backend (`.env`):
