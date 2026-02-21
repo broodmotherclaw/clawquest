@@ -18,6 +18,7 @@ import leaderboardRoutes from './api/leaderboard';
 import statsRoutes from './api/stats';
 import waferRoutes from './api/wafers';
 import gangRoutes from './api/gangs';
+import authRoutes from './api/auth';
 import { checkAIProvider } from './services/aiProvider';
 import { prisma, getDatabaseUrlResolution } from './utils/prisma';
 
@@ -114,7 +115,11 @@ export function createApp() {
       'X-OpenClaw-Bot',
       'X-OpenClaw-Bot-Secret',
       'x-openclaw-bot',
-      'x-openclaw-bot-secret'
+      'x-openclaw-bot-secret',
+      'X-Agent-Id',
+      'X-Agent-Secret',
+      'x-agent-id',
+      'x-agent-secret'
     ]
   };
   app.use(cors(corsOptions));
@@ -238,6 +243,7 @@ export function createApp() {
   app.get('/api/health', healthHandler);
 
   // API Routes
+  app.use('/api/auth', authRoutes);                     // Agent registration & verification
   app.use('/api/bots', botLimiter, agentRoutes);        // Original bot API
   app.use('/api/agents', agentRoutes);                  // Alias for frontend compatibility
   app.use('/api/hexes', botLimiter, hexRoutes);

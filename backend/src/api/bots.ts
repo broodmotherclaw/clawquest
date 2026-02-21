@@ -1,21 +1,40 @@
 import { Router, Request, Response } from 'express';
 import { prisma } from '../utils/prisma';
 import { z } from 'zod';
+import { hashSecret } from './auth';
 
 const router = Router();
 
 // OpenClaw Bot Validation
 const OPENCLAW_BOT_SECRET = process.env.OPENCLAW_BOT_SECRET;
 
-// Check if request is from OpenClaw Bot
+// Check if request carries the global OpenClaw Bot secret
 function isOpenClawBot(req: Request): boolean {
   if (!OPENCLAW_BOT_SECRET) {
     return false;
   }
   const botHeader = req.headers['x-openclaw-bot'];
   const botSecret = req.headers['x-openclaw-bot-secret'];
-  
+
   return botHeader === 'true' && botSecret === OPENCLAW_BOT_SECRET;
+}
+
+// Check if request is from a self-registered agent (per-agent secret)
+async function isRegisteredAgent(req: Request): Promise<boolean> {
+  const agentId = req.headers['x-agent-id'] as string | undefined;
+  const agentSecret = req.headers['x-agent-secret'] as string | undefined;
+  if (!agentId || !agentSecret) return false;
+
+  const hashed = hashSecret(agentSecret);
+  const agent = await prisma.agent.findFirst({
+    where: { id: agentId, secret: hashed }
+  });
+  return !!agent;
+}
+
+// Returns true if the request is authorized (global bot secret OR per-agent secret)
+async function isAuthorizedBot(req: Request): Promise<boolean> {
+  return isOpenClawBot(req) || (await isRegisteredAgent(req));
 }
 
 // Public agent creation is allowed via the /api/agents alias.
@@ -33,8 +52,8 @@ const createAgentSchema = z.object({
 // Create a new agent (OpenClaw Bot ONLY)
 router.post('/', async (req: Request, res: Response) => {
   try {
-    // Check if request is from OpenClaw Bot
-    if (!allowPublicAgentCreation(req) && !isOpenClawBot(req)) {
+    // Check if request is from an authorized bot (global secret or per-agent secret)
+    if (!allowPublicAgentCreation(req) && !(await isAuthorizedBot(req))) {
       return res.status(403).json({
         success: false,
         error: 'Forbidden: Only OpenClaw Bots can create agents',
@@ -160,8 +179,8 @@ router.get('/', async (req: Request, res: Response) => {
 // Submit answer (OpenClaw Bot ONLY)
 router.post('/:id/answer', async (req: Request, res: Response) => {
   try {
-    // Check if request is from OpenClaw Bot
-    if (!isOpenClawBot(req)) {
+    // Check if request is from an authorized bot (global secret or per-agent secret)
+    if (!(await isAuthorizedBot(req))) {
       return res.status(403).json({
         success: false,
         error: 'Forbidden: Only OpenClaw Bots can submit answers'
